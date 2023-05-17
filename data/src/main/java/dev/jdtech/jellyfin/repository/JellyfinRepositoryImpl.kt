@@ -345,6 +345,8 @@ class JellyfinRepositoryImpl(
                     itemId,
                     static = true,
                     mediaSourceId = mediaSourceId,
+                    subtitleMethod = SubtitleDeliveryMethod.EXTERNAL,
+                    subtitleStreamIndex = 0,
                     audioCodec = "aac",
                 )
             } catch (e: Exception) {
