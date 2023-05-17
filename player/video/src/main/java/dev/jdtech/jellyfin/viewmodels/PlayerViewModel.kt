@@ -166,7 +166,7 @@ class PlayerViewModel @Inject internal constructor(
                 ExternalSubtitle(
                     mediaStream.title,
                     mediaStream.language,
-                    Uri.parse(deliveryUrl),
+                    Uri.parse(mediaStream.path),
                     when (mediaStream.codec) {
                         "subrip" -> MimeTypes.APPLICATION_SUBRIP
                         "webvtt" -> MimeTypes.TEXT_VTT
@@ -204,6 +204,7 @@ class PlayerViewModel @Inject internal constructor(
                 .setAutoplay(true)
                 .setCurrentTime(position.toLong()).build()
         )
+        remoteMediaClient.setActiveMediaTracks(longArrayOf(1))
 
     }
 
@@ -216,16 +217,17 @@ class PlayerViewModel @Inject internal constructor(
                 com.google.android.gms.cast.MediaMetadata.KEY_TITLE,
                 it
             )
+            movieMetadata.putString(com.google.android.gms.cast.MediaMetadata.KEY_SUBTITLE,it)
         }
 
-                val mediaSubtitles = item.externalSubtitles.mapIndexed { index, externalSubtitle ->
-                   MediaTrack.Builder(index.toLong(), MediaTrack.TYPE_TEXT)
-                       .setName(externalSubtitle.title)
-                        .setSubtype(MediaTrack.SUBTYPE_SUBTITLES)
-                        .setContentId(externalSubtitle.uri.toString())
-                        .setLanguage(externalSubtitle.language)
-                        .build()
-                }
+        val mediaSubtitles = item.externalSubtitles.mapIndexed { index, externalSubtitle ->
+           MediaTrack.Builder(index.toLong(), MediaTrack.SUBTYPE_SUBTITLES)
+                .setName(externalSubtitle.title)
+                .setSubtype(MediaTrack.SUBTYPE_SUBTITLES)
+                .setContentId(externalSubtitle.uri.toString())
+                .setLanguage("en-US")
+                .build()
+        }
         //movieMetadata.addImage(WebImage(Uri.parse(mSelectedMedia!!.getImage(0))))
         // movieMetadata.addImage(WebImage(Uri.parse(mSelectedMedia!!.getImage(1))))
         return MediaInfo.Builder(streamUrl)
