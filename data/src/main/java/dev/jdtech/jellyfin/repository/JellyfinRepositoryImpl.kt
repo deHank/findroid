@@ -342,7 +342,9 @@ class JellyfinRepositoryImpl(
                 jellyfinApi.videosApi.getVideoStreamUrl(
                     itemId,
                     static = true,
-                    mediaSourceId = mediaSourceId
+                    mediaSourceId = mediaSourceId,
+                    subtitleMethod = SubtitleDeliveryMethod.EXTERNAL,
+                    subtitleStreamIndex = 0,
                 )
             } catch (e: Exception) {
                 Timber.e(e)

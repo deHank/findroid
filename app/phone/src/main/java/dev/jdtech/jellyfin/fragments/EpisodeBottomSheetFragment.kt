@@ -2,6 +2,7 @@ package dev.jdtech.jellyfin.fragments
 
 import android.R as AndroidR
 import android.app.DownloadManager
+import android.content.Intent
 import android.os.Bundle
 import android.util.TypedValue
 import android.view.LayoutInflater
@@ -16,6 +17,9 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import com.google.android.gms.cast.framework.CastContext
+import com.google.android.gms.cast.framework.CastState
+import com.google.android.gms.cast.framework.media.RemoteMediaClient
 import com.google.android.material.R as MaterialR
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -24,6 +28,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import dev.jdtech.jellyfin.R
 import dev.jdtech.jellyfin.bindCardItemImage
+import dev.jdtech.jellyfin.chromecast.ExpandedControlsActivity
 import dev.jdtech.jellyfin.core.R as CoreR
 import dev.jdtech.jellyfin.databinding.EpisodeBottomSheetBinding
 import dev.jdtech.jellyfin.dialogs.ErrorDialogFragment
@@ -45,6 +50,7 @@ import java.util.UUID
 import kotlinx.coroutines.launch
 import org.jellyfin.sdk.model.DateTime
 import timber.log.Timber
+import java.util.*
 
 @AndroidEntryPoint
 class EpisodeBottomSheetFragment : BottomSheetDialogFragment() {
@@ -389,11 +395,25 @@ class EpisodeBottomSheetFragment : BottomSheetDialogFragment() {
     private fun navigateToPlayerActivity(
         playerItems: Array<PlayerItem>,
     ) {
-        findNavController().navigate(
-            EpisodeBottomSheetFragmentDirections.actionEpisodeBottomSheetFragmentToPlayerActivity(
-                playerItems,
+        val castContext = CastContext.getSharedInstance(requireContext().applicationContext)
+        val session = castContext.sessionManager.currentCastSession
+        if (session == null || castContext.castState != CastState.CONNECTED) {
+            findNavController().navigate(
+                EpisodeBottomSheetFragmentDirections.actionEpisodeBottomSheetFragmentToPlayerActivity(
+                    playerItems,
+                )
             )
-        )
+        }else {
+            val remoteMediaClient = session.remoteMediaClient ?: return
+            remoteMediaClient.registerCallback(object : RemoteMediaClient.Callback() {
+                override fun onStatusUpdated() {
+                    val intent = Intent(requireActivity(), ExpandedControlsActivity::class.java)
+                    startActivity(intent)
+                    remoteMediaClient.unregisterCallback(this)
+                }
+            })
+            playerViewModel.startCast(playerItems, requireContext())
+        }
     }
 
     private fun navigateToSeries(id: UUID, name: String) {

@@ -1,10 +1,16 @@
 package dev.jdtech.jellyfin.viewmodels
 
+import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MimeTypes
+import com.google.android.gms.cast.MediaInfo
+import com.google.android.gms.cast.MediaLoadRequestData
+import com.google.android.gms.cast.MediaTrack
+import com.google.android.gms.cast.framework.CastContext
+import com.google.android.gms.cast.framework.CastSession
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.jdtech.jellyfin.models.ExternalSubtitle
 import dev.jdtech.jellyfin.models.FindroidEpisode
@@ -14,6 +20,7 @@ import dev.jdtech.jellyfin.models.FindroidSeason
 import dev.jdtech.jellyfin.models.FindroidShow
 import dev.jdtech.jellyfin.models.FindroidSourceType
 import dev.jdtech.jellyfin.models.PlayerItem
+import dev.jdtech.jellyfin.player.video.R
 import dev.jdtech.jellyfin.repository.JellyfinRepository
 import javax.inject.Inject
 import kotlinx.coroutines.channels.BufferOverflow
@@ -182,4 +189,70 @@ class PlayerViewModel @Inject internal constructor(
 
     data class PlayerItemError(val error: Exception) : PlayerItemState()
     data class PlayerItems(val items: List<PlayerItem>) : PlayerItemState()
+
+    private fun loadRemoteMedia(position: Int, mCastSession: CastSession, mediaInfo: MediaInfo) {
+        if (mCastSession == null) {
+            return
+        }
+        val remoteMediaClient = mCastSession!!.remoteMediaClient ?: return
+        remoteMediaClient.load(
+            MediaLoadRequestData.Builder()
+                .setMediaInfo(mediaInfo)
+                .setAutoplay(true)
+                .setCurrentTime(position.toLong()).build()
+        )
+
+    }
+
+    private fun buildMediaInfo(streamUrl: String, item: PlayerItem): MediaInfo {
+        val movieMetadata =
+            com.google.android.gms.cast.MediaMetadata(com.google.android.gms.cast.MediaMetadata.MEDIA_TYPE_TV_SHOW)
+        //movieMetadata.putString(MediaMetadata.KEY_SUBTITLE, item.)
+        item.name?.let {
+            movieMetadata.putString(
+                com.google.android.gms.cast.MediaMetadata.KEY_TITLE,
+                it
+            )
+        }
+
+                val mediaSubtitles = item.externalSubtitles.mapIndexed { index, externalSubtitle ->
+                   MediaTrack.Builder(index.toLong(), MediaTrack.TYPE_TEXT)
+                       .setName(externalSubtitle.title)
+                        .setSubtype(MediaTrack.SUBTYPE_SUBTITLES)
+                        .setContentId(externalSubtitle.uri.toString())
+                        .setLanguage(externalSubtitle.language)
+                        .build()
+                }
+        //movieMetadata.addImage(WebImage(Uri.parse(mSelectedMedia!!.getImage(0))))
+        // movieMetadata.addImage(WebImage(Uri.parse(mSelectedMedia!!.getImage(1))))
+        return MediaInfo.Builder(streamUrl)
+            .setStreamType(MediaInfo.STREAM_TYPE_BUFFERED)
+            .setMetadata(movieMetadata)
+            .setMediaTracks(mediaSubtitles)
+            .setStreamDuration(1000 * 60)
+            .build()
+
+    }
+
+    fun startCast(
+        items: Array<PlayerItem>, context: Context
+    ) {
+        val session = CastContext.getSharedInstance(context).sessionManager.currentCastSession
+        viewModelScope.launch {
+            try {
+                val item = items.first()
+                val streamUrl = when {
+                    item.mediaSourceUri.isNotEmpty() -> item.mediaSourceUri
+                    else -> repository.getStreamUrl(item.itemId, item.mediaSourceId)
+                }
+                if (session != null) {
+                    val mediaInfo = buildMediaInfo(streamUrl, item)
+                    loadRemoteMedia(0, session, mediaInfo)
+
+                }
+            } catch (e: Exception) {
+                Timber.e(e)
+            }
+        }
+    }
 }

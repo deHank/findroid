@@ -110,6 +110,7 @@ dependencies {
     implementation(libs.androidx.work)
     implementation(libs.glide)
     implementation(libs.hilt.android)
+    implementation("com.google.android.gms:play-services-cast-framework:21.3.0")
     kapt(libs.hilt.compiler)
     implementation(libs.jellyfin.core)
     compileOnly(libs.libmpv)
