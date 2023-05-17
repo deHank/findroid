@@ -345,8 +345,7 @@ class JellyfinRepositoryImpl(
                     itemId,
                     static = true,
                     mediaSourceId = mediaSourceId,
-                    subtitleMethod = SubtitleDeliveryMethod.EXTERNAL,
-                    subtitleStreamIndex = 0,
+                    subtitleMethod = SubtitleDeliveryMethod.EMBED
                 )
             } catch (e: Exception) {
                 Timber.e(e)
