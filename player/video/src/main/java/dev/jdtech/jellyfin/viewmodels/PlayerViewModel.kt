@@ -9,6 +9,7 @@ import androidx.media3.common.MimeTypes
 import com.google.android.gms.cast.MediaInfo
 import com.google.android.gms.cast.MediaLoadRequestData
 import com.google.android.gms.cast.MediaTrack
+import com.google.android.gms.cast.TextTrackStyle
 import com.google.android.gms.cast.framework.CastContext
 import com.google.android.gms.cast.framework.CastSession
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -166,7 +167,7 @@ class PlayerViewModel @Inject internal constructor(
                 ExternalSubtitle(
                     mediaStream.title,
                     mediaStream.language,
-                    Uri.parse(mediaStream.path),
+                    Uri.parse(deliveryUrl),
                     when (mediaStream.codec) {
                         "subrip" -> MimeTypes.APPLICATION_SUBRIP
                         "webvtt" -> MimeTypes.TEXT_VTT
@@ -184,7 +185,7 @@ class PlayerViewModel @Inject internal constructor(
             parentIndexNumber = if (this is FindroidEpisode) parentIndexNumber else null,
             indexNumber = if (this is FindroidEpisode) indexNumber else null,
             indexNumberEnd = if (this is FindroidEpisode) indexNumberEnd else null,
-            externalSubtitles = externalSubtitles
+            externalSubtitles = externalSubtitles,
         )
     }
 
@@ -209,32 +210,23 @@ class PlayerViewModel @Inject internal constructor(
     }
 
     private fun buildMediaInfo(streamUrl: String, item: PlayerItem): MediaInfo {
-        val movieMetadata =
-            com.google.android.gms.cast.MediaMetadata(com.google.android.gms.cast.MediaMetadata.MEDIA_TYPE_TV_SHOW)
-        //movieMetadata.putString(MediaMetadata.KEY_SUBTITLE, item.)
-        item.name?.let {
-            movieMetadata.putString(
-                com.google.android.gms.cast.MediaMetadata.KEY_TITLE,
-                it
-            )
-            movieMetadata.putString(com.google.android.gms.cast.MediaMetadata.KEY_SUBTITLE,it)
-        }
+
 
         val mediaSubtitles = item.externalSubtitles.mapIndexed { index, externalSubtitle ->
-           MediaTrack.Builder(index.toLong(), MediaTrack.SUBTYPE_SUBTITLES)
+            MediaTrack.Builder(index.toLong(), MediaTrack.TYPE_TEXT)
                 .setName(externalSubtitle.title)
                 .setSubtype(MediaTrack.SUBTYPE_SUBTITLES)
+                .setContentType("text/vtt")
                 .setContentId(externalSubtitle.uri.toString())
-                .setLanguage("en-US")
+                .setLanguage(externalSubtitle.language)
                 .build()
         }
+
         //movieMetadata.addImage(WebImage(Uri.parse(mSelectedMedia!!.getImage(0))))
         // movieMetadata.addImage(WebImage(Uri.parse(mSelectedMedia!!.getImage(1))))
         return MediaInfo.Builder(streamUrl)
             .setStreamType(MediaInfo.STREAM_TYPE_BUFFERED)
-            .setMetadata(movieMetadata)
             .setMediaTracks(mediaSubtitles)
-            .setStreamDuration(1000 * 60)
             .build()
 
     }
