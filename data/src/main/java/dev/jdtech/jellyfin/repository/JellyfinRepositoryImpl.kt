@@ -345,7 +345,7 @@ class JellyfinRepositoryImpl(
                     itemId,
                     static = true,
                     mediaSourceId = mediaSourceId,
-                    subtitleMethod = SubtitleDeliveryMethod.EMBED
+                    audioCodec = "aac",
                 )
             } catch (e: Exception) {
                 Timber.e(e)
