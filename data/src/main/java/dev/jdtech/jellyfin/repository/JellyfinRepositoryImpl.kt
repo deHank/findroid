@@ -43,6 +43,7 @@ import org.jellyfin.sdk.model.api.DeviceOptionsDto
 import org.jellyfin.sdk.model.api.DeviceProfile
 import org.jellyfin.sdk.model.api.DirectPlayProfile
 import org.jellyfin.sdk.model.api.DlnaProfileType
+import org.jellyfin.sdk.model.api.EncodingContext
 import org.jellyfin.sdk.model.api.GeneralCommandType
 import org.jellyfin.sdk.model.api.ItemFields
 import org.jellyfin.sdk.model.api.ItemFilter
@@ -394,10 +395,10 @@ class JellyfinRepositoryImpl(
             try {
 
                 jellyfinApi.api.videosApi.getVideoStreamUrl(
-                    itemId,
-                    videoCodec = "h265",
-                    mediaSourceId = mediaSourceId,
+                    itemId = itemId,
+                    static = true,
                     playSessionId = playSessionIds[itemId],
+                    mediaSourceId = mediaSourceId,
                 )
             } catch (e: Exception) {
                 Timber.e(e)
