@@ -33,8 +33,10 @@ import java.util.UUID
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
+import org.jellyfin.sdk.api.client.extensions.dynamicHlsApi
 import org.jellyfin.sdk.api.client.extensions.get
 import org.jellyfin.sdk.api.client.extensions.subtitleApi
+import org.jellyfin.sdk.api.client.extensions.videosApi
 import org.jellyfin.sdk.model.api.BaseItemDto
 import org.jellyfin.sdk.model.api.BaseItemKind
 import org.jellyfin.sdk.model.api.DeviceOptionsDto
@@ -45,6 +47,7 @@ import org.jellyfin.sdk.model.api.GeneralCommandType
 import org.jellyfin.sdk.model.api.ItemFields
 import org.jellyfin.sdk.model.api.ItemFilter
 import org.jellyfin.sdk.model.api.PlaybackInfoDto
+import org.jellyfin.sdk.model.api.PlaybackInfoResponse
 import org.jellyfin.sdk.model.api.PublicSystemInfo
 import org.jellyfin.sdk.model.api.SortOrder
 import org.jellyfin.sdk.model.api.SubtitleDeliveryMethod
@@ -58,6 +61,8 @@ class JellyfinRepositoryImpl(
     private val database: ServerDatabaseDao,
     private val appPreferences: AppPreferences,
 ) : JellyfinRepository {
+
+    private val playSessionIds = mutableMapOf<UUID, String?>()
     override suspend fun getPublicSystemInfo(): PublicSystemInfo = withContext(Dispatchers.IO) {
         jellyfinApi.systemApi.getPublicSystemInfo().content
     }
@@ -323,17 +328,64 @@ class JellyfinRepositoryImpl(
                         ),
                         maxStreamingBitrate = 1_000_000_000,
                     )
-                ).content.mediaSources.map {
+                )
+
+                    .content.mediaSources.map {
                     it.toFindroidSource(
                         this@JellyfinRepositoryImpl,
                         itemId,
                         includePath,
+
                     )
+
                 }
+
+
+
             )
+
             sources.addAll(
                 database.getSources(itemId).map { it.toFindroidSource(database) }
             )
+            val playbackInfo = jellyfinApi.mediaInfoApi.getPostedPlaybackInfo(
+                itemId,
+                PlaybackInfoDto(
+                    userId = jellyfinApi.userId!!,
+                    deviceProfile = DeviceProfile(
+                        name = "Direct play all",
+                        maxStaticBitrate = 1_000_000_000,
+                        maxStreamingBitrate = 1_000_000_000,
+                        codecProfiles = emptyList(),
+                        containerProfiles = emptyList(),
+                        directPlayProfiles = listOf(
+                            DirectPlayProfile(type = DlnaProfileType.VIDEO),
+                            DirectPlayProfile(type = DlnaProfileType.AUDIO)
+                        ),
+                        transcodingProfiles = emptyList(),
+                        responseProfiles = emptyList(),
+                        subtitleProfiles = listOf(
+                            SubtitleProfile("srt", SubtitleDeliveryMethod.EXTERNAL),
+                            SubtitleProfile("vtt", SubtitleDeliveryMethod.EXTERNAL),
+                            SubtitleProfile("ass", SubtitleDeliveryMethod.EXTERNAL),
+                        ),
+                        xmlRootAttributes = emptyList(),
+                        supportedMediaTypes = "",
+                        enableAlbumArtInDidl = false,
+                        enableMsMediaReceiverRegistrar = false,
+                        enableSingleAlbumArtLimit = false,
+                        enableSingleSubtitleLimit = false,
+                        ignoreTranscodeByteRangeRequests = false,
+                        maxAlbumArtHeight = 1_000_000_000,
+                        maxAlbumArtWidth = 1_000_000_000,
+                        requiresPlainFolders = false,
+                        requiresPlainVideoItems = false,
+                        timelineOffsetSeconds = 0
+                    ),
+                    maxStreamingBitrate = 1_000_000_000,
+                )
+            ).content
+            playSessionIds[itemId] = playbackInfo.playSessionId
+
             sources
         }
 
@@ -341,13 +393,11 @@ class JellyfinRepositoryImpl(
         withContext(Dispatchers.IO) {
             try {
 
-                jellyfinApi.videosApi.getVideoStreamUrl(
+                jellyfinApi.api.videosApi.getVideoStreamUrl(
                     itemId,
-                    static = true,
+                    videoCodec = "h265",
                     mediaSourceId = mediaSourceId,
-                    subtitleMethod = SubtitleDeliveryMethod.EXTERNAL,
-                    subtitleStreamIndex = 0,
-                    audioCodec = "aac",
+                    playSessionId = playSessionIds[itemId],
                 )
             } catch (e: Exception) {
                 Timber.e(e)

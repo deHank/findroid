@@ -212,7 +212,7 @@ class PlayerViewModel @Inject internal constructor(
     private fun buildMediaInfo(streamUrl: String, item: PlayerItem): MediaInfo {
 
 
-        val mediaSubtitles = item.externalSubtitles.mapIndexed { index, externalSubtitle ->
+        /*val mediaSubtitles = item.externalSubtitles.mapIndexed { index, externalSubtitle ->
             MediaTrack.Builder(index.toLong(), MediaTrack.TYPE_TEXT)
                 .setName(externalSubtitle.title)
                 .setSubtype(MediaTrack.SUBTYPE_SUBTITLES)
@@ -220,13 +220,13 @@ class PlayerViewModel @Inject internal constructor(
                 .setContentId(externalSubtitle.uri.toString())
                 .setLanguage(externalSubtitle.language)
                 .build()
-        }
+        }*/
 
         //movieMetadata.addImage(WebImage(Uri.parse(mSelectedMedia!!.getImage(0))))
         // movieMetadata.addImage(WebImage(Uri.parse(mSelectedMedia!!.getImage(1))))
         return MediaInfo.Builder(streamUrl)
             .setStreamType(MediaInfo.STREAM_TYPE_BUFFERED)
-            .setMediaTracks(mediaSubtitles)
+            //.setMediaTracks(mediaSubtitles)
             .build()
 
     }
@@ -238,10 +238,8 @@ class PlayerViewModel @Inject internal constructor(
         viewModelScope.launch {
             try {
                 val item = items.first()
-                val streamUrl = when {
-                    item.mediaSourceUri.isNotEmpty() -> item.mediaSourceUri
-                    else -> repository.getStreamUrl(item.itemId, item.mediaSourceId)
-                }
+                val streamUrl = repository.getStreamUrl(item.itemId, item.mediaSourceId)
+
                 if (session != null) {
                     val mediaInfo = buildMediaInfo(streamUrl, item)
                     loadRemoteMedia(0, session, mediaInfo)
