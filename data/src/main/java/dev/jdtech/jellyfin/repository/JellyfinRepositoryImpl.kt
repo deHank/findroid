@@ -28,15 +28,11 @@ import dev.jdtech.jellyfin.models.toIntro
 import dev.jdtech.jellyfin.models.toTrickPlayManifest
 import io.ktor.util.cio.toByteArray
 import io.ktor.utils.io.ByteReadChannel
-import java.io.File
-import java.util.UUID
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
-import org.jellyfin.sdk.api.client.extensions.dynamicHlsApi
 import org.jellyfin.sdk.api.client.extensions.get
-import org.jellyfin.sdk.api.client.extensions.subtitleApi
-import org.jellyfin.sdk.api.client.extensions.videosApi
+import org.jellyfin.sdk.api.operations.VideosApi
 import org.jellyfin.sdk.model.api.BaseItemDto
 import org.jellyfin.sdk.model.api.BaseItemKind
 import org.jellyfin.sdk.model.api.DeviceOptionsDto
@@ -48,19 +44,24 @@ import org.jellyfin.sdk.model.api.GeneralCommandType
 import org.jellyfin.sdk.model.api.ItemFields
 import org.jellyfin.sdk.model.api.ItemFilter
 import org.jellyfin.sdk.model.api.PlaybackInfoDto
-import org.jellyfin.sdk.model.api.PlaybackInfoResponse
 import org.jellyfin.sdk.model.api.PublicSystemInfo
 import org.jellyfin.sdk.model.api.SortOrder
 import org.jellyfin.sdk.model.api.SubtitleDeliveryMethod
 import org.jellyfin.sdk.model.api.SubtitleProfile
+import org.jellyfin.sdk.model.api.TranscodeSeekInfo
+import org.jellyfin.sdk.model.api.TranscodingProfile
 import org.jellyfin.sdk.model.api.UserConfiguration
 import timber.log.Timber
+import java.io.File
+import java.util.UUID
 
 class JellyfinRepositoryImpl(
     private val context: Context,
     private val jellyfinApi: JellyfinApi,
     private val database: ServerDatabaseDao,
     private val appPreferences: AppPreferences,
+    private val videosApi: VideosApi = jellyfinApi.videosApi
+
 ) : JellyfinRepository {
 
     private val playSessionIds = mutableMapOf<UUID, String?>()
@@ -307,7 +308,25 @@ class JellyfinRepositoryImpl(
                                 DirectPlayProfile(type = DlnaProfileType.VIDEO),
                                 DirectPlayProfile(type = DlnaProfileType.AUDIO)
                             ),
-                            transcodingProfiles = emptyList(),
+                            transcodingProfiles = listOf(TranscodingProfile(
+                                type = DlnaProfileType.VIDEO,
+                                container = "mkv",
+                                videoCodec = "h264",
+                                audioCodec = "mp1,mp2,mp3,aac,ac3,eac3,dts,mlp,truehd",
+                                context = EncodingContext.STREAMING,
+                                protocol = "hls",
+
+                                // TODO: remove redundant defaults after API/SDK is fixed
+                                estimateContentLength = false,
+                                enableMpegtsM2TsMode = false,
+                                transcodeSeekInfo = TranscodeSeekInfo.AUTO,
+                                copyTimestamps = false,
+                                enableSubtitlesInManifest = false,
+                                minSegments = 0,
+                                segmentLength = 0,
+                                breakOnNonKeyFrames = false,
+                                conditions = emptyList(),
+                            )),
                             responseProfiles = emptyList(),
                             subtitleProfiles = listOf(
                                 SubtitleProfile("srt", SubtitleDeliveryMethod.EXTERNAL),
@@ -328,6 +347,9 @@ class JellyfinRepositoryImpl(
                             timelineOffsetSeconds = 0
                         ),
                         maxStreamingBitrate = 1_000_000_000,
+                        enableTranscoding = true,
+                        enableDirectPlay = true,
+                        enableDirectStream = true,
                     )
                 )
 
@@ -393,16 +415,23 @@ class JellyfinRepositoryImpl(
     override suspend fun getStreamUrl(itemId: UUID, mediaSourceId: String): String =
         withContext(Dispatchers.IO) {
             try {
-
-                jellyfinApi.api.videosApi.getVideoStreamUrl(
+                jellyfinApi.videosApi.getVideoStreamByContainerUrl(
                     itemId = itemId,
-                    static = true,
+                    container = "mkv",
                     playSessionId = playSessionIds[itemId],
                     mediaSourceId = mediaSourceId,
+                    videoBitRate = 120000000,
+                    videoCodec = "h264",
+                    deviceId = jellyfinApi.api.deviceInfo.id,
+                    audioCodec = "mp3",
+                    level = "5.1",
+                    height = 1920,
+                    width = 1080,
                 )
+
             } catch (e: Exception) {
                 Timber.e(e)
-                ""
+                "l"
             }
         }
 

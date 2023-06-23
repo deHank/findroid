@@ -9,11 +9,9 @@ import androidx.media3.common.MimeTypes
 import com.google.android.gms.cast.MediaInfo
 import com.google.android.gms.cast.MediaLoadRequestData
 import com.google.android.gms.cast.MediaTrack
-import com.google.android.gms.cast.TextTrackStyle
 import com.google.android.gms.cast.framework.CastContext
 import com.google.android.gms.cast.framework.CastSession
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dev.jdtech.jellyfin.api.JellyfinApi
 import dev.jdtech.jellyfin.models.ExternalSubtitle
 import dev.jdtech.jellyfin.models.FindroidEpisode
 import dev.jdtech.jellyfin.models.FindroidItem
@@ -22,16 +20,14 @@ import dev.jdtech.jellyfin.models.FindroidSeason
 import dev.jdtech.jellyfin.models.FindroidShow
 import dev.jdtech.jellyfin.models.FindroidSourceType
 import dev.jdtech.jellyfin.models.PlayerItem
-import dev.jdtech.jellyfin.player.video.R
 import dev.jdtech.jellyfin.repository.JellyfinRepository
-import javax.inject.Inject
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
-import org.jellyfin.sdk.Jellyfin
 import org.jellyfin.sdk.model.api.ItemFields
 import org.jellyfin.sdk.model.api.MediaStreamType
 import timber.log.Timber
+import javax.inject.Inject
 
 @HiltViewModel
 class PlayerViewModel @Inject internal constructor(
@@ -212,7 +208,7 @@ class PlayerViewModel @Inject internal constructor(
     private fun buildMediaInfo(streamUrl: String, item: PlayerItem): MediaInfo {
 
 
-        /*val mediaSubtitles = item.externalSubtitles.mapIndexed { index, externalSubtitle ->
+        val mediaSubtitles = item.externalSubtitles.mapIndexed { index, externalSubtitle ->
             MediaTrack.Builder(index.toLong(), MediaTrack.TYPE_TEXT)
                 .setName(externalSubtitle.title)
                 .setSubtype(MediaTrack.SUBTYPE_SUBTITLES)
@@ -220,13 +216,14 @@ class PlayerViewModel @Inject internal constructor(
                 .setContentId(externalSubtitle.uri.toString())
                 .setLanguage(externalSubtitle.language)
                 .build()
-        }*/
+        }
 
         //movieMetadata.addImage(WebImage(Uri.parse(mSelectedMedia!!.getImage(0))))
         // movieMetadata.addImage(WebImage(Uri.parse(mSelectedMedia!!.getImage(1))))
         return MediaInfo.Builder(streamUrl)
             .setStreamType(MediaInfo.STREAM_TYPE_BUFFERED)
-            //.setMediaTracks(mediaSubtitles)
+            .setContentUrl(streamUrl)
+            .setMediaTracks(mediaSubtitles)
             .build()
 
     }
