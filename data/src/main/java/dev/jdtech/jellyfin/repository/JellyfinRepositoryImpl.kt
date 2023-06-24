@@ -1,4 +1,5 @@
 package dev.jdtech.jellyfin.repository
+
 import android.content.Context
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
@@ -6,7 +7,7 @@ import androidx.paging.PagingData
 import dev.jdtech.jellyfin.AppPreferences
 import dev.jdtech.jellyfin.api.JellyfinApi
 import dev.jdtech.jellyfin.database.ServerDatabaseDao
-import dev.jdtech.jellyfin.models.FindroidCollection/**/
+import dev.jdtech.jellyfin.models.FindroidCollection
 import dev.jdtech.jellyfin.models.FindroidEpisode
 import dev.jdtech.jellyfin.models.FindroidItem
 import dev.jdtech.jellyfin.models.FindroidMovie
@@ -53,7 +54,6 @@ import org.jellyfin.sdk.model.api.UserConfiguration
 import timber.log.Timber
 import java.io.File
 import java.util.UUID
-
 class
 JellyfinRepositoryImpl(
     private val context: Context,
@@ -361,8 +361,7 @@ JellyfinRepositoryImpl(
                             this@JellyfinRepositoryImpl,
                             itemId,
                             includePath,
-
-                            )
+                        )
                     }
             )
             sources.addAll(
@@ -427,7 +426,6 @@ JellyfinRepositoryImpl(
                     height = 1920,
                     width = 1080,
                 )*/
-
             } catch (e: Exception) {
                 Timber.e(e)
                 "l"
