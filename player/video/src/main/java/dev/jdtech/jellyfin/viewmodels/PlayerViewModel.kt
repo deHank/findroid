@@ -194,7 +194,7 @@ class PlayerViewModel @Inject internal constructor(
         if (mCastSession == null) {
             return
         }
-        val remoteMediaClient = mCastSession!!.remoteMediaClient ?: return
+        val remoteMediaClient = mCastSession.remoteMediaClient ?: return
         remoteMediaClient.load(
             MediaLoadRequestData.Builder()
                 .setMediaInfo(mediaInfo)
