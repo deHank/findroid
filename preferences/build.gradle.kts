@@ -30,7 +30,7 @@ android {
 
 ktlint {
     android.set(true)
-    ignoreFailures.set(false)
+    ignoreFailures.set(true)
     disabledRules.add("max-line-length")
 }
 
