@@ -55,8 +55,7 @@ import timber.log.Timber
 import java.io.File
 import java.util.UUID
 
-class
-JellyfinRepositoryImpl(
+class JellyfinRepositoryImpl(
     private val context: Context,
     private val jellyfinApi: JellyfinApi,
     private val database: ServerDatabaseDao,
