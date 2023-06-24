@@ -1,5 +1,4 @@
 package dev.jdtech.jellyfin.repository
-
 import android.content.Context
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
@@ -357,7 +356,6 @@ JellyfinRepositoryImpl(
                         enableDirectStream = true,
                     )
                 )
-
                     .content.mediaSources.map {
                         it.toFindroidSource(
                             this@JellyfinRepositoryImpl,
@@ -365,12 +363,8 @@ JellyfinRepositoryImpl(
                             includePath,
 
                             )
-
                     }
-
-
             )
-
             sources.addAll(
                 database.getSources(itemId).map { it.toFindroidSource(database) }
             )
@@ -412,14 +406,13 @@ JellyfinRepositoryImpl(
                 )
             ).content
             playSessionIds[itemId] = playbackInfo.playSessionId
-
             sources
         }
 
     override suspend fun getStreamUrl(itemId: UUID, mediaSourceId: String): String =
         withContext(Dispatchers.IO) {
             try {
-                //val response = jellyfinApi.mediaInfoApi.getPlaybackInfo(itemId = itemId)
+                // val response = jellyfinApi.mediaInfoApi.getPlaybackInfo(itemId = itemId)
                 jellyfinApi.api.createUrl("/videos/" + itemId + "/master.m3u8?DeviceId=" + jellyfinApi.api.deviceInfo.id + "&MediaSourceId=" + mediaSourceId + "&VideoCodec=h264,h264,h265&AudioCodec=mp3&VideoBitrate=120000000&AudioBitrate=128000&AudioSampleRate=44100&MaxFramerate=23.976025&PlaySessionId=" + playSessionIds[itemId] + "&api_key=" + jellyfinApi.api.accessToken + "&SubtitleMethod=Encode&RequireAvc=false&SegmentContainer=ts&BreakOnNonKeyFrames=False&h264-level=40&h264-videobitdepth=8&h264-profile=high&h264-audiochannels=2&aac-profile=lc&TranscodeReasons=SubtitleCodecNotSupported")
                 /*jellyfinApi.videosApi.getVideoStreamByContainerUrl(
                     itemId = itemId,
@@ -444,15 +437,12 @@ JellyfinRepositoryImpl(
     override suspend fun getIntroTimestamps(itemId: UUID): Intro? =
         withContext(Dispatchers.IO) {
             val intro = database.getIntro(itemId)?.toIntro()
-
             if (intro != null) {
                 return@withContext intro
             }
-
             // https://github.com/ConfusedPolarBear/intro-skipper/blob/master/docs/api.md
             val pathParameters = mutableMapOf<String, UUID>()
             pathParameters["itemId"] = itemId
-
             try {
                 return@withContext jellyfinApi.api.get<Intro>(
                     "/Episode/{itemId}/IntroTimestamps/v1",
