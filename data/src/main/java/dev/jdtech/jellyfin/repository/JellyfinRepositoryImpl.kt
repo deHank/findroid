@@ -250,7 +250,8 @@ class JellyfinRepositoryImpl(
                     .orEmpty()
                     .map { it.toFindroidSeason() }
             } else {
-                database.getSeasonsByShowId(seriesId).map { it.toFindroidSeason(database, jellyfinApi.userId!!) }
+                database.getSeasonsByShowId(seriesId)
+                    .map { it.toFindroidSeason(database, jellyfinApi.userId!!) }
             }
         }
 
@@ -286,7 +287,8 @@ class JellyfinRepositoryImpl(
                     .orEmpty()
                     .mapNotNull { it.toFindroidEpisode(this@JellyfinRepositoryImpl, database) }
             } else {
-                database.getEpisodesBySeasonId(seasonId).map { it.toFindroidEpisode(database, jellyfinApi.userId!!) }
+                database.getEpisodesBySeasonId(seasonId)
+                    .map { it.toFindroidEpisode(database, jellyfinApi.userId!!) }
             }
         }
 
@@ -308,25 +310,27 @@ class JellyfinRepositoryImpl(
                                 DirectPlayProfile(type = DlnaProfileType.VIDEO),
                                 DirectPlayProfile(type = DlnaProfileType.AUDIO)
                             ),
-                            transcodingProfiles = listOf(TranscodingProfile(
-                                type = DlnaProfileType.VIDEO,
-                                container = "mkv",
-                                videoCodec = "h264",
-                                audioCodec = "mp1,mp2,mp3,aac,ac3,eac3,dts,mlp,truehd",
-                                context = EncodingContext.STREAMING,
-                                protocol = "hls",
+                            transcodingProfiles = listOf(
+                                TranscodingProfile(
+                                    type = DlnaProfileType.VIDEO,
+                                    container = "mkv",
+                                    videoCodec = "h264",
+                                    audioCodec = "mp1,mp2,mp3,aac,ac3,eac3,dts,mlp,truehd",
+                                    context = EncodingContext.STREAMING,
+                                    protocol = "hls",
 
-                                // TODO: remove redundant defaults after API/SDK is fixed
-                                estimateContentLength = false,
-                                enableMpegtsM2TsMode = false,
-                                transcodeSeekInfo = TranscodeSeekInfo.AUTO,
-                                copyTimestamps = false,
-                                enableSubtitlesInManifest = false,
-                                minSegments = 0,
-                                segmentLength = 0,
-                                breakOnNonKeyFrames = false,
-                                conditions = emptyList(),
-                            )),
+                                    // TODO: remove redundant defaults after API/SDK is fixed
+                                    estimateContentLength = false,
+                                    enableMpegtsM2TsMode = false,
+                                    transcodeSeekInfo = TranscodeSeekInfo.AUTO,
+                                    copyTimestamps = false,
+                                    enableSubtitlesInManifest = false,
+                                    minSegments = 0,
+                                    segmentLength = 0,
+                                    breakOnNonKeyFrames = false,
+                                    conditions = emptyList(),
+                                )
+                            ),
                             responseProfiles = emptyList(),
                             subtitleProfiles = listOf(
                                 SubtitleProfile("srt", SubtitleDeliveryMethod.EXTERNAL),
@@ -354,15 +358,14 @@ class JellyfinRepositoryImpl(
                 )
 
                     .content.mediaSources.map {
-                    it.toFindroidSource(
-                        this@JellyfinRepositoryImpl,
-                        itemId,
-                        includePath,
+                        it.toFindroidSource(
+                            this@JellyfinRepositoryImpl,
+                            itemId,
+                            includePath,
 
-                    )
+                            )
 
-                }
-
+                    }
 
 
             )
@@ -416,7 +419,7 @@ class JellyfinRepositoryImpl(
         withContext(Dispatchers.IO) {
             try {
                 //val response = jellyfinApi.mediaInfoApi.getPlaybackInfo(itemId = itemId)
-                jellyfinApi.api.createUrl("/videos/"+ itemId + "/master.m3u8?DeviceId="+ jellyfinApi.api.deviceInfo.id +"&MediaSourceId=" + mediaSourceId + "&VideoCodec=h264,h264&AudioCodec=mp3&AudioStreamIndex=1&SubtitleStreamIndex=2&VideoBitrate=119872000&AudioBitrate=128000&AudioSampleRate=44100&MaxFramerate=23.976025&PlaySessionId="+playSessionIds[itemId]+"&api_key="+jellyfinApi.api.accessToken+"&SubtitleMethod=Encode&RequireAvc=false&SegmentContainer=ts&BreakOnNonKeyFrames=False&h264-level=40&h264-videobitdepth=8&h264-profile=high&h264-audiochannels=2&aac-profile=lc&TranscodeReasons=SubtitleCodecNotSupported")
+                jellyfinApi.api.createUrl("/videos/" + itemId + "/master.m3u8?DeviceId=" + jellyfinApi.api.deviceInfo.id + "&MediaSourceId=" + mediaSourceId + "&VideoCodec=h264,h264,h265&AudioCodec=mp3&VideoBitrate=120000000&AudioBitrate=128000&AudioSampleRate=44100&MaxFramerate=23.976025&PlaySessionId=" + playSessionIds[itemId] + "&api_key=" + jellyfinApi.api.accessToken + "&SubtitleMethod=Encode&RequireAvc=false&SegmentContainer=ts&BreakOnNonKeyFrames=False&h264-level=40&h264-videobitdepth=8&h264-profile=high&h264-audiochannels=2&aac-profile=lc&TranscodeReasons=SubtitleCodecNotSupported")
                 /*jellyfinApi.videosApi.getVideoStreamByContainerUrl(
                     itemId = itemId,
                     container = "mkv",
@@ -547,10 +550,12 @@ class JellyfinRepositoryImpl(
                     database.setPlaybackPositionTicks(itemId, jellyfinApi.userId!!, 0)
                     database.setPlayed(jellyfinApi.userId!!, itemId, false)
                 }
+
                 playedPercentage > 90 -> {
                     database.setPlaybackPositionTicks(itemId, jellyfinApi.userId!!, 0)
                     database.setPlayed(jellyfinApi.userId!!, itemId, true)
                 }
+
                 else -> {
                     database.setPlaybackPositionTicks(itemId, jellyfinApi.userId!!, positionTicks)
                     database.setPlayed(jellyfinApi.userId!!, itemId, false)
