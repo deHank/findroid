@@ -54,6 +54,7 @@ import org.jellyfin.sdk.model.api.UserConfiguration
 import timber.log.Timber
 import java.io.File
 import java.util.UUID
+
 class
 JellyfinRepositoryImpl(
     private val context: Context,
