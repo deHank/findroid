@@ -29,7 +29,6 @@ import dev.jdtech.jellyfin.R
 import dev.jdtech.jellyfin.adapters.PersonListAdapter
 import dev.jdtech.jellyfin.bindItemBackdropImage
 import dev.jdtech.jellyfin.chromecast.ExpandedControlsActivity
-import dev.jdtech.jellyfin.core.R as CoreR
 import dev.jdtech.jellyfin.databinding.FragmentMovieBinding
 import dev.jdtech.jellyfin.dialogs.ErrorDialogFragment
 import dev.jdtech.jellyfin.dialogs.getStorageSelectionDialog

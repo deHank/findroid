@@ -25,7 +25,6 @@ import com.google.android.gms.cast.framework.SessionManagerListener
 import com.google.android.material.navigation.NavigationBarView
 import dagger.hilt.android.AndroidEntryPoint
 import dev.jdtech.jellyfin.api.JellyfinApi
-import dev.jdtech.jellyfin.core.R as CoreR
 import dev.jdtech.jellyfin.database.ServerDatabaseDao
 import dev.jdtech.jellyfin.databinding.ActivityMainBinding
 import dev.jdtech.jellyfin.viewmodels.MainViewModel

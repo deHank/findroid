@@ -18,7 +18,6 @@ import androidx.navigation.fragment.navArgs
 import com.google.android.gms.cast.framework.CastContext
 import com.google.android.gms.cast.framework.CastState
 import com.google.android.gms.cast.framework.media.RemoteMediaClient
-import com.google.android.material.R as MaterialR
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -27,7 +26,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import dev.jdtech.jellyfin.R
 import dev.jdtech.jellyfin.bindCardItemImage
 import dev.jdtech.jellyfin.chromecast.ExpandedControlsActivity
-import dev.jdtech.jellyfin.core.R as CoreR
 import dev.jdtech.jellyfin.databinding.EpisodeBottomSheetBinding
 import dev.jdtech.jellyfin.dialogs.ErrorDialogFragment
 import dev.jdtech.jellyfin.dialogs.getStorageSelectionDialog
@@ -41,8 +39,6 @@ import dev.jdtech.jellyfin.utils.setIconTintColorAttribute
 import dev.jdtech.jellyfin.viewmodels.EpisodeBottomSheetViewModel
 import dev.jdtech.jellyfin.viewmodels.PlayerViewModel
 import kotlinx.coroutines.launch
-import org.jellyfin.sdk.model.DateTime
-import timber.log.Timber
 import java.text.DateFormat
 import java.time.ZoneOffset
 import java.util.Date
