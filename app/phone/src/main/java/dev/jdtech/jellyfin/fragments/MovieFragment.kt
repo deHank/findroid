@@ -45,10 +45,11 @@ import dev.jdtech.jellyfin.utils.checkIfLoginRequired
 import dev.jdtech.jellyfin.utils.setIconTintColorAttribute
 import dev.jdtech.jellyfin.viewmodels.MovieViewModel
 import dev.jdtech.jellyfin.viewmodels.PlayerViewModel
-import java.util.UUID
-import javax.inject.Inject
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.util.UUID
+import javax.inject.Inject
+import dev.jdtech.jellyfin.core.R as CoreR
 
 @AndroidEntryPoint
 class MovieFragment : Fragment() {
@@ -66,7 +67,7 @@ class MovieFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): View {
         binding = FragmentMovieBinding.inflate(inflater, container, false)
 
@@ -157,13 +158,14 @@ class MovieFragment : Fragment() {
             binding.itemActions.progressPlay.isVisible = true
             if (viewModel.item.sources.filter { it.type == FindroidSourceType.REMOTE }.size > 1) {
                 val dialog = getVideoVersionDialog(
-                    requireContext(), viewModel.item,
+                    requireContext(),
+                    viewModel.item,
                     onItemSelected = {
                         playerViewModel.loadPlayerItems(viewModel.item, it)
                     },
                     onCancel = {
                         playButtonNormal()
-                    }
+                    },
                 )
                 dialog.show()
                 return@setOnClickListener
@@ -175,7 +177,7 @@ class MovieFragment : Fragment() {
             viewModel.item.trailer.let { trailerUri ->
                 val intent = Intent(
                     Intent.ACTION_VIEW,
-                    Uri.parse(trailerUri)
+                    Uri.parse(trailerUri),
                 )
                 try {
                     startActivity(intent)
@@ -220,7 +222,7 @@ class MovieFragment : Fragment() {
                                     onCancel = {
                                         binding.itemActions.progressDownload.isVisible = false
                                         binding.itemActions.downloadButton.setIconResource(CoreR.drawable.ic_download)
-                                    }
+                                    },
                                 )
                                 dialog.show()
                                 return@getStorageSelectionDialog
@@ -231,7 +233,7 @@ class MovieFragment : Fragment() {
                         onCancel = {
                             binding.itemActions.progressDownload.isVisible = false
                             binding.itemActions.downloadButton.setIconResource(CoreR.drawable.ic_download)
-                        }
+                        },
                     )
                     storageDialog.show()
                     return@setOnClickListener
@@ -247,7 +249,7 @@ class MovieFragment : Fragment() {
                         onCancel = {
                             binding.itemActions.progressDownload.isVisible = false
                             binding.itemActions.downloadButton.setIconResource(CoreR.drawable.ic_download)
-                        }
+                        },
                     )
                     dialog.show()
                     return@setOnClickListener
@@ -329,7 +331,8 @@ class MovieFragment : Fragment() {
                         videoProfileChip.isVisible = when (this) {
                             DisplayProfile.HDR,
                             DisplayProfile.HDR10,
-                            DisplayProfile.HLG -> {
+                            DisplayProfile.HLG,
+                            -> {
                                 videoProfileChip.chipStartPadding = .0f
                                 true
                             }
@@ -416,7 +419,7 @@ class MovieFragment : Fragment() {
             true -> binding.itemActions.checkButton.setIconTintResource(CoreR.color.red)
             false -> binding.itemActions.checkButton.setIconTintColorAttribute(
                 com.google.android.material.R.attr.colorOnSecondaryContainer,
-                requireActivity().theme
+                requireActivity().theme,
             )
         }
     }
@@ -431,7 +434,7 @@ class MovieFragment : Fragment() {
             true -> binding.itemActions.favoriteButton.setIconTintResource(CoreR.color.red)
             false -> binding.itemActions.favoriteButton.setIconTintColorAttribute(
                 com.google.android.material.R.attr.colorOnSecondaryContainer,
-                requireActivity().theme
+                requireActivity().theme,
             )
         }
     }
@@ -520,7 +523,7 @@ class MovieFragment : Fragment() {
 
     private fun navigateToPersonDetail(personId: UUID) {
         findNavController().navigate(
-            MovieFragmentDirections.actionMovieFragmentToPersonDetailFragment(personId)
+            MovieFragmentDirections.actionMovieFragmentToPersonDetailFragment(personId),
         )
     }
 }

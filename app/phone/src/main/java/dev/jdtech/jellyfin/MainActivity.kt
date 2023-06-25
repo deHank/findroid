@@ -30,8 +30,9 @@ import dev.jdtech.jellyfin.database.ServerDatabaseDao
 import dev.jdtech.jellyfin.databinding.ActivityMainBinding
 import dev.jdtech.jellyfin.viewmodels.MainViewModel
 import dev.jdtech.jellyfin.work.SyncWorker
-import javax.inject.Inject
 import kotlinx.coroutines.launch
+import javax.inject.Inject
+import dev.jdtech.jellyfin.core.R as CoreR
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -65,9 +66,9 @@ class MainActivity : AppCompatActivity() {
             .setConstraints(
                 Constraints.Builder()
                     .setRequiredNetworkType(
-                        NetworkType.CONNECTED
+                        NetworkType.CONNECTED,
                     )
-                    .build()
+                    .build(),
             )
             .build()
 
@@ -118,7 +119,7 @@ class MainActivity : AppCompatActivity() {
                 R.id.mediaFragment,
                 R.id.favoriteFragment,
                 R.id.downloadsFragment,
-            )
+            ),
         )
 
         setupActionBarWithNavController(navController, appBarConfiguration)
@@ -131,8 +132,10 @@ class MainActivity : AppCompatActivity() {
                 R.id.twoPaneSettingsFragment, R.id.serverSelectFragment, R.id.addServerFragment, R.id.loginFragment, com.mikepenz.aboutlibraries.R.id.about_libraries_dest, R.id.usersFragment, R.id.serverAddressesFragment -> View.GONE
                 else -> View.VISIBLE
             }
-            if (destination.id == com.mikepenz.aboutlibraries.R.id.about_libraries_dest) binding.mainToolbar.title =
-                getString(CoreR.string.app_info)
+            if (destination.id == com.mikepenz.aboutlibraries.R.id.about_libraries_dest) {
+                binding.mainToolbar.title =
+                    getString(CoreR.string.app_info)
+            }
         }
     }
 
