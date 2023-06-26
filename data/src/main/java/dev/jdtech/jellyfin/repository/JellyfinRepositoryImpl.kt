@@ -32,7 +32,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 import org.jellyfin.sdk.api.client.extensions.get
-import org.jellyfin.sdk.api.operations.VideosApi
 import org.jellyfin.sdk.model.api.BaseItemDto
 import org.jellyfin.sdk.model.api.BaseItemKind
 import org.jellyfin.sdk.model.api.DeviceOptionsDto
@@ -60,7 +59,6 @@ class JellyfinRepositoryImpl(
     private val jellyfinApi: JellyfinApi,
     private val database: ServerDatabaseDao,
     private val appPreferences: AppPreferences,
-    private val videosApi: VideosApi = jellyfinApi.videosApi
 
 ) : JellyfinRepository {
 
@@ -329,7 +327,7 @@ class JellyfinRepositoryImpl(
                                     segmentLength = 0,
                                     breakOnNonKeyFrames = false,
                                     conditions = emptyList(),
-                                )
+                                ),
                             ),
                             responseProfiles = emptyList(),
                             subtitleProfiles = listOf(
@@ -354,7 +352,7 @@ class JellyfinRepositoryImpl(
                         enableTranscoding = true,
                         enableDirectPlay = true,
                         enableDirectStream = true,
-                    )
+                    ),
                 )
                     .content.mediaSources.map {
                         it.toFindroidSource(
@@ -362,7 +360,7 @@ class JellyfinRepositoryImpl(
                             itemId,
                             includePath,
                         )
-                    }
+                    },
             )
             sources.addAll(
                 database.getSources(itemId).map { it.toFindroidSource(database) },
@@ -379,7 +377,7 @@ class JellyfinRepositoryImpl(
                         containerProfiles = emptyList(),
                         directPlayProfiles = listOf(
                             DirectPlayProfile(type = DlnaProfileType.VIDEO),
-                            DirectPlayProfile(type = DlnaProfileType.AUDIO)
+                            DirectPlayProfile(type = DlnaProfileType.AUDIO),
                         ),
                         transcodingProfiles = emptyList(),
                         responseProfiles = emptyList(),
@@ -399,10 +397,10 @@ class JellyfinRepositoryImpl(
                         maxAlbumArtWidth = 1_000_000_000,
                         requiresPlainFolders = false,
                         requiresPlainVideoItems = false,
-                        timelineOffsetSeconds = 0
+                        timelineOffsetSeconds = 0,
                     ),
                     maxStreamingBitrate = 1_000_000_000,
-                )
+                ),
             ).content
             playSessionIds[itemId] = playbackInfo.playSessionId
             sources
@@ -412,23 +410,7 @@ class JellyfinRepositoryImpl(
         withContext(Dispatchers.IO) {
             try {
                 // val response = jellyfinApi.mediaInfoApi.getPlaybackInfo(itemId = itemId)
-                jellyfinApi.api.createUrl("/videos/"+ itemId + "/master.m3u8?DeviceId="+ jellyfinApi.api.deviceInfo.id +"&MediaSourceId=" + mediaSourceId + "&VideoCodec=h264,h264&AudioCodec=mp3&" +
-                        "AudioStreamIndex=1&SubtitleStreamIndex=2&VideoBitrate=119872000&AudioBitrate=128000&AudioSampleRate=44100&MaxFramerate=23.976025&PlaySessionId="+playSessionIds[itemId]+"&api_key="+jellyfinApi.api.accessToken+"" +
-                        "&SubtitleMethod=External&RequireAvc=false&Tag=c0ea0b16f553dec1094671a6baeabdbf&SegmentContainer=ts&BreakOnNonKeyFrames=False&h264-level=40&h264-videobitdepth=8" +
-                        "&h264-profile=high&h264-audiochannels=2&aac-profile=lc&TranscodeReasons=SubtitleCodecNotSupported")
-               // https://wolf.techkit.xyz/j/videos/bd08ebdc-4a41-5576-59cd-725b72f5c9be/master.m3u8?DeviceId=9ba8e6377689062ea83539cd7cea462f9c4c877d918d14c0&MediaSourceId=bd08ebdc4a41557659cd725b72f5c9be&VideoCodec=h264,h264&AudioCodec=aac&AudioStreamIndex=1&SubtitleStreamIndex=2&VideoBitrate=119872000&AudioBitrate=128000&AudioSampleRate=44100&MaxFramerate=23.976025&PlaySessionId=9f1034864e3d468988e55562b6186cf8&api_key=8d5e30c766a84d62b7a4a43ace4837e0&SubtitleMethod=Encode&RequireAvc=false&Tag=c0ea0b16f553dec1094671a6baeabdbf&SegmentContainer=ts&BreakOnNonKeyFrames=False&h264-level=40&h264-videobitdepth=8&h264-profile=high&h264-audiochannels=2&aac-profile=lc&TranscodeReasons=SubtitleCodecNotSupported
-                /*    container = "mkv",
-                    playSessionId = playSessionIds[itemId],
-                    mediaSourceId = mediaSourceId,
-                    videoBitRate = 120000000,
-                    videoCodec = "h264",
-                    deviceId = jellyfinApi.api.deviceInfo.id,
-                    audioCodec = "mp3",
-                    level = "5.1",
-                    height = 1920,
-                    width = 1080,
-                    sub
-                )*/
+                jellyfinApi.api.createUrl("/videos/"+ itemId + "/master.m3u8?DeviceId=" + jellyfinApi.api.deviceInfo.id + "&MediaSourceId=" + mediaSourceId + "&VideoCodec=h264,h264&AudioCodec=mp3&" + "AudioStreamIndex=1&SubtitleStreamIndex=2&VideoBitrate=119872000&AudioBitrate=128000&AudioSampleRate=44100&MaxFramerate=23.976025&PlaySessionId="+playSessionIds[itemId] + "&api_key=" + jellyfinApi.api.accessToken + "&SubtitleMethod=External&RequireAvc=false&Tag=c0ea0b16f553dec1094671a6baeabdbf&SegmentContainer=ts&BreakOnNonKeyFrames=False&h264-level=40&h264-videobitdepth=8" + "&h264-profile=high&h264-audiochannels=2&aac-profile=lc&TranscodeReasons=SubtitleCodecNotSupported")
             } catch (e: Exception) {
                 Timber.e(e)
                 "l"
