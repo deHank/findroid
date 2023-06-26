@@ -23,7 +23,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import dev.jdtech.jellyfin.AppPreferences
 import dev.jdtech.jellyfin.adapters.ViewItemPagingAdapter
 import dev.jdtech.jellyfin.core.R
-
 import dev.jdtech.jellyfin.databinding.FragmentLibraryBinding
 import dev.jdtech.jellyfin.dialogs.ErrorDialogFragment
 import dev.jdtech.jellyfin.dialogs.SortDialogFragment
@@ -36,7 +35,6 @@ import dev.jdtech.jellyfin.utils.checkIfLoginRequired
 import dev.jdtech.jellyfin.viewmodels.LibraryViewModel
 import kotlinx.coroutines.launch
 import org.jellyfin.sdk.model.api.SortOrder
-import java.lang.IllegalArgumentException
 import javax.inject.Inject
 import dev.jdtech.jellyfin.core.R as CoreR
 

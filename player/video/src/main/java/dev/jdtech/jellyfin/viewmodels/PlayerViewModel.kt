@@ -12,6 +12,7 @@ import com.google.android.gms.cast.MediaTrack
 import com.google.android.gms.cast.framework.CastContext
 import com.google.android.gms.cast.framework.CastSession
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.jdtech.jellyfin.api.JellyfinApi
 import dev.jdtech.jellyfin.models.ExternalSubtitle
 import dev.jdtech.jellyfin.models.FindroidEpisode
 import dev.jdtech.jellyfin.models.FindroidItem
@@ -32,6 +33,7 @@ import javax.inject.Inject
 @HiltViewModel
 class PlayerViewModel @Inject internal constructor(
     private val repository: JellyfinRepository,
+    private val jellyfinApi: JellyfinApi,
 ) : ViewModel() {
 
     private val playerItems = MutableSharedFlow<PlayerItemState>(
@@ -156,9 +158,13 @@ class PlayerViewModel @Inject internal constructor(
                 // Temp fix for vtt
                 // Jellyfin returns a srt stream when it should return vtt stream.
                 var deliveryUrl = mediaStream.path!!
-                if (mediaStream.codec == "webvtt") {
+                if (mediaStream.codec == "ass") {
+                    deliveryUrl = deliveryUrl.replace("Stream.ass", "Stream.vtt")
+                }
+                if (mediaStream.codec == "srt") {
                     deliveryUrl = deliveryUrl.replace("Stream.srt", "Stream.vtt")
                 }
+
 
                 ExternalSubtitle(
                     mediaStream.title,
@@ -167,7 +173,7 @@ class PlayerViewModel @Inject internal constructor(
                     when (mediaStream.codec) {
                         "subrip" -> MimeTypes.APPLICATION_SUBRIP
                         "webvtt" -> MimeTypes.TEXT_VTT
-                        "ass" -> MimeTypes.TEXT_SSA
+                        "ass" -> MimeTypes.TEXT_VTT
                         else -> MimeTypes.TEXT_UNKNOWN
                     },
                 )
@@ -207,11 +213,10 @@ class PlayerViewModel @Inject internal constructor(
 
     private fun buildMediaInfo(streamUrl: String, item: PlayerItem): MediaInfo {
 
-
         val mediaSubtitles = item.externalSubtitles.mapIndexed { index, externalSubtitle ->
+            val uri = Uri.parse(streamUrl)
             MediaTrack.Builder(index.toLong(), MediaTrack.TYPE_TEXT)
                 .setName(externalSubtitle.title)
-                .setSubtype(MediaTrack.SUBTYPE_SUBTITLES)
                 .setContentType("text/vtt")
                 .setContentId(externalSubtitle.uri.toString())
                 .setLanguage(externalSubtitle.language)
@@ -225,16 +230,15 @@ class PlayerViewModel @Inject internal constructor(
             .setContentUrl(streamUrl)
             .setMediaTracks(mediaSubtitles)
             .build()
-
     }
 
-    fun startCast(
-        items: Array<PlayerItem>, context: Context
-    ) {
+    fun startCast(items: Array<PlayerItem>, context: Context) {
         val session = CastContext.getSharedInstance(context).sessionManager.currentCastSession
         viewModelScope.launch {
             try {
-                val item = items.first()
+                val test = repository.getEpisode(items.first().itemId)
+                val finTest = test.toPlayerItem(0,0)
+                val item = finTest
                 val streamUrl = repository.getStreamUrl(item.itemId, item.mediaSourceId)
 
                 if (session != null) {

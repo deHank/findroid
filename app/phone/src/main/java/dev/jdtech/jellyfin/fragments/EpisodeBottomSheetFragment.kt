@@ -39,14 +39,12 @@ import dev.jdtech.jellyfin.utils.setIconTintColorAttribute
 import dev.jdtech.jellyfin.viewmodels.EpisodeBottomSheetViewModel
 import dev.jdtech.jellyfin.viewmodels.PlayerViewModel
 import kotlinx.coroutines.launch
+import org.jellyfin.sdk.model.DateTime
+import timber.log.Timber
 import java.text.DateFormat
 import java.time.ZoneOffset
 import java.util.Date
 import java.util.UUID
-import kotlinx.coroutines.launch
-import org.jellyfin.sdk.model.DateTime
-import timber.log.Timber
-import java.util.*
 import android.R as AndroidR
 import com.google.android.material.R as MaterialR
 import dev.jdtech.jellyfin.core.R as CoreR
