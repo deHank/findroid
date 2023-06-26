@@ -60,7 +60,7 @@ class JellyfinRepositoryImpl(
     private val database: ServerDatabaseDao,
     private val appPreferences: AppPreferences,
 
-    ) : JellyfinRepository {
+) : JellyfinRepository {
 
     private val playSessionIds = mutableMapOf<UUID, String?>()
     override suspend fun getPublicSystemInfo(): PublicSystemInfo = withContext(Dispatchers.IO) {
