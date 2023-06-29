@@ -35,7 +35,6 @@ import javax.inject.Inject
 class PlayerViewModel @Inject internal constructor(
     private val repository: JellyfinRepository,
     private val jellyfinApi: JellyfinApi,
-    //private var previousSubtitleTrackIds: LongArray?,
 ) : ViewModel() {
 
     private val playerItems = MutableSharedFlow<PlayerItemState>(
@@ -198,7 +197,6 @@ class PlayerViewModel @Inject internal constructor(
     data class PlayerItemError(val error: Exception) : PlayerItemState()
     data class PlayerItems(val items: List<PlayerItem>) : PlayerItemState()
 
-
     private fun loadRemoteMedia(
         position: Int,
         mCastSession: CastSession,
@@ -213,33 +211,44 @@ class PlayerViewModel @Inject internal constructor(
             return
         }
         val remoteMediaClient = mCastSession.remoteMediaClient ?: return
-
-        val callback = object : RemoteMediaClient.Callback(){
+        var previousSubtitleTrackIds: LongArray? = null
+        val callback = object : RemoteMediaClient.Callback() {
 
             override fun onStatusUpdated() {
-
                 val mediaStatus = remoteMediaClient.mediaStatus
-
+                val activeSubtitleTrackIds = mediaStatus?.activeTrackIds
+                var newIndex = -1
                 val mediaInfo = mediaStatus?.mediaInfo
                 if (mediaStatus != null) {
                     if (previousSubtitleTrackIds != mediaStatus.activeTrackIds && previousSubtitleTrackIds != null) {
-                        var newIndex = mediaStatus.activeTrackIds
+                        if (activeSubtitleTrackIds != null) {
+                            if (activeSubtitleTrackIds.isNotEmpty()) {
+                                newIndex = (mediaStatus.activeTrackIds!!.get(0) + 2).toInt()
+                            }
+                        }
+
                         val regex = Regex("SubtitleStreamIndex=(\\d+)")
                         val matchResult = regex.find(streamUrl)
-                        val newUrl = streamUrl.replaceFirst(Regex("(?<=SubtitleStreamIndex=)\\d+"),
+                        /*val newUrl = streamUrl.replaceFirst(Regex("(?<=SubtitleStreamIndex=)\\d+"),
                             newIndex?.get(0).toString()
-                        )
-
+                        )*/
+                        val newUrl = jellyfinApi.api.createUrl("/videos/"+ item.itemId + "/master.m3u8?DeviceId="+ jellyfinApi.api.deviceInfo.id +"&MediaSourceId=" + item.mediaSourceId + "&VideoCodec=h264,h264&AudioCodec=mp3&AudioStreamIndex=1&SubtitleStreamIndex="+newIndex+ "&VideoBitrate=119872000&AudioBitrate=128000&AudioSampleRate=44100&MaxFramerate=23.976025&PlaySessionId="+ (Math.random()*10000).toInt() +"&api_key="+jellyfinApi.api.accessToken+"&SubtitleMethod=Encode&RequireAvc=false&SegmentContainer=ts&BreakOnNonKeyFrames=False&h264-level=40&h264-videobitdepth=8&h264-profile=high&h264-audiochannels=2&aac-profile=lc&TranscodeReasons=SubtitleCodecNotSupported")
                         val newMediaInfo = buildMediaInfo(newUrl,item)
 
-                        remoteMediaClient.load(
+
+                        if (mediaInfo != null) {
+
+                            loadRemoteMedia(mediaStatus.streamPosition.toInt(),mCastSession,mediaInfo,newUrl,item)
+
+                        }
+                        remoteMediaClient.unregisterCallback(this)
+                        /*remoteMediaClient.load(
                             MediaLoadRequestData.Builder()
                                 .setMediaInfo(newMediaInfo)
                                 .setAutoplay(true)
                                 .setCurrentTime(position.toLong())
                                 .build()
-                        )
-                        remoteMediaClient.unregisterCallback(this)
+                        )*/
 
                         print("aye")
 
@@ -247,13 +256,10 @@ class PlayerViewModel @Inject internal constructor(
 
                 }
                 previousSubtitleTrackIds = mediaStatus?.activeTrackIds
-                //remoteMediaClient.unregisterCallback(this)
 
             }
 
         }
-
-        previousSubtitleTrackIds = null
 
         remoteMediaClient.registerCallback(callback)
 
@@ -270,7 +276,6 @@ class PlayerViewModel @Inject internal constructor(
 
     }
 
-    private var previousSubtitleTrackIds: LongArray? = null
     private fun buildMediaInfo(streamUrl: String, item: PlayerItem): MediaInfo {
 
 
@@ -281,6 +286,7 @@ class PlayerViewModel @Inject internal constructor(
             MediaTrack.Builder(index.toLong(), MediaTrack.TYPE_TEXT)
                 .setName(externalSubtitle.title)
                 .setContentType("text/vtt")
+                //.setContentId("https://wolf.techkit.xyz/j/videos/" + item.itemId + "/master.m3u8?DeviceId=" + jellyfinApi.api.deviceInfo.id + "&MediaSourceId=" + item.mediaSourceId + "&VideoCodec=h264,h264&AudioCodec=mp3&" + "AudioStreamIndex=1&SubtitleStreamIndex=" + index + "&VideoBitrate=119872000&AudioBitrate=128000&AudioSampleRate=44100&MaxFramerate=23.976025&PlaySessionId=1&api_key=" + jellyfinApi.api.accessToken + "&SubtitleMethod=Encode&RequireAvc=false&Tag=c0ea0b16f553dec1094671a6baeabdbf&SegmentContainer=ts&BreakOnNonKeyFrames=False&h264-level=40&h264-videobitdepth=8" + "&h264-profile=high&h264-audiochannels=2&aac-profile=lc&TranscodeReasons=SubtitleCodecNotSupported")
                 .setLanguage(externalSubtitle.language)
                 .build()
         }
