@@ -147,7 +147,7 @@ class MainActivity : AppCompatActivity() {
     override fun onPause() {
         super.onPause()
         sessionManager.removeSessionManagerListener(sessionManagerListener, CastSession::class.java)
-        castSession = null
+        //castSession = null
     }
 
     override fun onSupportNavigateUp(): Boolean {

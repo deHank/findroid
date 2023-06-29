@@ -412,6 +412,12 @@ class EpisodeBottomSheetFragment : BottomSheetDialogFragment() {
                 }
             })
             playerViewModel.startCast(playerItems, requireContext())
+            //remoteMediaClient.mediaStatus
+        }
+        if (session != null) {
+            if(session.remoteMediaClient?.isPaused() == true){
+                print("yeet")
+            }
         }
     }
 
