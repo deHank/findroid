@@ -255,14 +255,14 @@ class PlayerViewModel @Inject internal constructor(
 
         previousSubtitleTrackIds = null
 
-
+        remoteMediaClient.registerCallback(callback)
 
         remoteMediaClient.load(MediaLoadRequestData.Builder()
                 .setMediaInfo(mediaInfo)
                 .setAutoplay(true)
                 .setCurrentTime(position.toLong()).build()
         )
-        remoteMediaClient.registerCallback(callback)
+
 
         val mediaStatus = remoteMediaClient.mediaStatus
         val activeMediaTracks = mediaStatus?.activeTrackIds
@@ -281,7 +281,6 @@ class PlayerViewModel @Inject internal constructor(
             MediaTrack.Builder(index.toLong(), MediaTrack.TYPE_TEXT)
                 .setName(externalSubtitle.title)
                 .setContentType("text/vtt")
-                //.setContentId("https://wolf.techkit.xyz/j/videos/" + item.itemId + "/master.m3u8?DeviceId=" + jellyfinApi.api.deviceInfo.id + "&MediaSourceId=" + item.mediaSourceId + "&VideoCodec=h264,h264&AudioCodec=mp3&" + "AudioStreamIndex=1&SubtitleStreamIndex=" + index + "&VideoBitrate=119872000&AudioBitrate=128000&AudioSampleRate=44100&MaxFramerate=23.976025&PlaySessionId=1&api_key=" + jellyfinApi.api.accessToken + "&SubtitleMethod=Encode&RequireAvc=false&Tag=c0ea0b16f553dec1094671a6baeabdbf&SegmentContainer=ts&BreakOnNonKeyFrames=False&h264-level=40&h264-videobitdepth=8" + "&h264-profile=high&h264-audiochannels=2&aac-profile=lc&TranscodeReasons=SubtitleCodecNotSupported")
                 .setLanguage(externalSubtitle.language)
                 .build()
         }
