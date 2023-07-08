@@ -31,6 +31,7 @@ import io.ktor.utils.io.ByteReadChannel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
+import org.jellyfin.sdk.api.client.extensions.dynamicHlsApi
 import org.jellyfin.sdk.api.client.extensions.get
 import org.jellyfin.sdk.model.api.BaseItemDto
 import org.jellyfin.sdk.model.api.BaseItemKind
@@ -410,7 +411,19 @@ class JellyfinRepositoryImpl(
         withContext(Dispatchers.IO) {
             try {
                 // val response = jellyfinApi.mediaInfoApi.getPlaybackInfo(itemId = itemId)
-                jellyfinApi.api.createUrl("/videos/"+ itemId + "/master.m3u8?DeviceId="+ jellyfinApi.api.deviceInfo.id +"&MediaSourceId=" + mediaSourceId + "&VideoCodec=h264,h264&AudioCodec=mp3&AudioStreamIndex=1&SubtitleStreamIndex=2&VideoBitrate=119872000&AudioBitrate=128000&AudioSampleRate=44100&MaxFramerate=23.976025&PlaySessionId="+playSessionIds[itemId]+"&api_key="+jellyfinApi.api.accessToken+"&SubtitleMethod=Encode&RequireAvc=false&SegmentContainer=ts&BreakOnNonKeyFrames=False&h264-level=40&h264-videobitdepth=8&h264-profile=high&h264-audiochannels=2&aac-profile=lc&TranscodeReasons=SubtitleCodecNotSupported")
+                //jellyfinApi.api.createUrl("/videos/"+ itemId + "/master.m3u8?DeviceId="+ jellyfinApi.api.deviceInfo.id +"&MediaSourceId=" + mediaSourceId + "&VideoCodec=h264,h264&AudioCodec=mp3&AudioStreamIndex=1&SubtitleStreamIndex=2&VideoBitrate=119872000&AudioBitrate=128000&AudioSampleRate=44100&MaxFramerate=23.976025&PlaySessionId="+playSessionIds[itemId]+"&api_key="+jellyfinApi.api.accessToken+"&SubtitleMethod=Encode&RequireAvc=false&SegmentContainer=ts&BreakOnNonKeyFrames=False&h264-level=40&h264-videobitdepth=8&h264-profile=high&h264-audiochannels=2&aac-profile=lc&TranscodeReasons=SubtitleCodecNotSupported")
+                jellyfinApi.api.dynamicHlsApi.getVariantHlsVideoPlaylistUrl(
+                    itemId,
+                    static = false,
+                    mediaSourceId = mediaSourceId,
+                    playSessionId = playSessionIds[itemId],
+                    videoCodec = "h264",
+                    audioCodec = "aac",
+                    videoBitRate = 80000,
+                    audioBitRate = 80000,
+                    subtitleMethod = SubtitleDeliveryMethod.EXTERNAL,
+                    transcodeReasons = "ContainerBitrateExceedsLimit",
+                )
             } catch (e: Exception) {
                 Timber.e(e)
                 "l"
