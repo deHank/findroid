@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MimeTypes
 import com.google.android.gms.cast.MediaInfo
 import com.google.android.gms.cast.MediaLoadRequestData
+import com.google.android.gms.cast.MediaTrack
 import com.google.android.gms.cast.framework.CastContext
 import com.google.android.gms.cast.framework.CastSession
 import com.google.android.gms.cast.framework.media.RemoteMediaClient
@@ -29,6 +30,7 @@ import org.jellyfin.sdk.model.api.ItemFields
 import org.jellyfin.sdk.model.api.MediaStreamType
 import timber.log.Timber
 import javax.inject.Inject
+
 
 @HiltViewModel
 class PlayerViewModel @Inject internal constructor(
@@ -262,6 +264,7 @@ class PlayerViewModel @Inject internal constructor(
 
         remoteMediaClient.registerCallback(callback)
 
+
         remoteMediaClient.load(MediaLoadRequestData.Builder()
                 .setMediaInfo(mediaInfo)
                 .setAutoplay(true)
@@ -280,7 +283,7 @@ class PlayerViewModel @Inject internal constructor(
 
 
 
-        /*val mediaSubtitles = item.externalSubtitles.mapIndexed { index, externalSubtitle ->
+        val mediaSubtitles = item.externalSubtitles.mapIndexed { index, externalSubtitle ->
             //val uri = Uri.parse(streamUrl)
             MediaTrack.Builder(index.toLong(), MediaTrack.TYPE_TEXT)
                 .setName(externalSubtitle.title)
@@ -288,14 +291,16 @@ class PlayerViewModel @Inject internal constructor(
                 //.setContentId("https://wolf.techkit.xyz/j/videos/" + item.itemId + "/master.m3u8?DeviceId=" + jellyfinApi.api.deviceInfo.id + "&MediaSourceId=" + item.mediaSourceId + "&VideoCodec=h264,h264&AudioCodec=mp3&" + "AudioStreamIndex=1&SubtitleStreamIndex=" + index + "&VideoBitrate=119872000&AudioBitrate=128000&AudioSampleRate=44100&MaxFramerate=23.976025&PlaySessionId=1&api_key=" + jellyfinApi.api.accessToken + "&SubtitleMethod=Encode&RequireAvc=false&Tag=c0ea0b16f553dec1094671a6baeabdbf&SegmentContainer=ts&BreakOnNonKeyFrames=False&h264-level=40&h264-videobitdepth=8" + "&h264-profile=high&h264-audiochannels=2&aac-profile=lc&TranscodeReasons=SubtitleCodecNotSupported")
                 .setLanguage(externalSubtitle.language)
                 .build()
-        }*/
+        }
 
         //movieMetadata.addImage(WebImage(Uri.parse(mSelectedMedia!!.getImage(0))))
         // movieMetadata.addImage(WebImage(Uri.parse(mSelectedMedia!!.getImage(1))))
         return MediaInfo.Builder(streamUrl)
             .setStreamType(MediaInfo.STREAM_TYPE_BUFFERED)
+            //.setContentType("video/mp4")
             .setContentUrl(streamUrl)
-            //.setMediaTracks(mediaSubtitles)
+            //.setHlsVideoSegmentFormat(HlsVideoSegmentFormat.FMP4)
+            .setMediaTracks(mediaSubtitles)
             //.setTextTrackStyle(textStyle)
             .build()
     }
