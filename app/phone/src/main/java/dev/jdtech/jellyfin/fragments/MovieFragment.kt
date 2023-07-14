@@ -350,7 +350,9 @@ class MovieFragment : Fragment() {
                             audioCodecChip.isVisible = true
                             if (it.isAtmos.firstOrNull() == true) {
                                 "${codec.raw} | Atmos"
-                            } else codec.raw
+                            } else {
+                                codec.raw
+                            }
                         }
 
                         AudioCodec.DTS -> {
