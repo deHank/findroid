@@ -212,13 +212,17 @@ class PlayerViewModel @Inject internal constructor(
         }
         val remoteMediaClient = mCastSession.remoteMediaClient ?: return
         var previousSubtitleTrackIds: LongArray? = null
-        val callback = object : RemoteMediaClient.Callback() {
 
+        //so i know the number of external subs
+        val subtitleCount = item.externalSubtitles.size
+
+        val callback = object : RemoteMediaClient.Callback() {
             override fun onStatusUpdated() {
                 val mediaStatus = remoteMediaClient.mediaStatus
                 val activeSubtitleTrackIds = mediaStatus?.activeTrackIds
                 var newIndex = -1
                 val mediaInfo = mediaStatus?.mediaInfo
+                val externalSubtitleCount = mediaInfo?.textTrackStyle?.describeContents()
                 if (mediaStatus != null) {
                     if (previousSubtitleTrackIds != mediaStatus.activeTrackIds && previousSubtitleTrackIds != null) {
                         if (activeSubtitleTrackIds != null) {
@@ -276,6 +280,7 @@ class PlayerViewModel @Inject internal constructor(
         val mediaSubtitles = item.externalSubtitles.mapIndexed { index, externalSubtitle ->
             MediaTrack.Builder(index.toLong(), MediaTrack.TYPE_TEXT)
                 .setName(externalSubtitle.title)
+                //.setContentId(jellyfinApi.api.createUrl("/videos/" + item.itemId + "/master.m3u8?DeviceId=" + jellyfinApi.api.deviceInfo.id + "&MediaSourceId=" + item.mediaSourceId + "&VideoCodec=h264,h264&AudioCodec=mp3&AudioStreamIndex=1&SubtitleStreamIndex=" + index + "&VideoBitrate=119872000&AudioBitrate=128000&AudioSampleRate=44100&MaxFramerate=23.976025&PlaySessionId=" + (Math.random() * 10000).toInt() + "&api_key=" + jellyfinApi.api.accessToken + "&SubtitleMethod=Encode&RequireAvc=false&SegmentContainer=ts&BreakOnNonKeyFrames=False&h264-level=40&h264-videobitdepth=8&h264-profile=high&h264-audiochannels=2&aac-profile=lc&TranscodeReasons=SubtitleCodecNotSupported")
                 .setContentType("text/vtt")
                 .setLanguage(externalSubtitle.language)
                 .build()
@@ -295,7 +300,7 @@ class PlayerViewModel @Inject internal constructor(
                 val test = repository.getEpisode(items.first().itemId)
                 val finTest = test.toPlayerItem(0, 0)
                 val item = finTest
-                val streamUrl = repository.getStreamUrl(item.itemId, item.mediaSourceId)
+                val streamUrl = repository.getStreamCastUrl(item.itemId, item.mediaSourceId)
 
                 if (session != null) {
                     val mediaInfo = buildMediaInfo(streamUrl, item)

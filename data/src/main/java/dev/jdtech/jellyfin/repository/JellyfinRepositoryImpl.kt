@@ -406,35 +406,26 @@ class JellyfinRepositoryImpl(
             sources
         }
 
-    override suspend fun getStreamUrl(itemId: UUID, mediaSourceId: String): String =
+    override suspend fun getStreamCastUrl(itemId: UUID, mediaSourceId: String): String =
         withContext(Dispatchers.IO) {
             try {
-                // val response = jellyfinApi.mediaInfoApi.getPlaybackInfo(itemId = itemId)
-                jellyfinApi.api.createUrl("/videos/"+ itemId + "/master.m3u8?DeviceId="+ jellyfinApi.api.deviceInfo.id +"&MediaSourceId=" + mediaSourceId + "&VideoCodec=h264,h264&AudioCodec=mp3&AudioStreamIndex=1&SubtitleStreamIndex=2&VideoBitrate=119872000&AudioBitrate=128000&AudioSampleRate=44100&MaxFramerate=23.976025&PlaySessionId="+playSessionIds[itemId]+"&api_key="+jellyfinApi.api.accessToken+"&SubtitleMethod=Encode&RequireAvc=false&SegmentContainer=ts&BreakOnNonKeyFrames=False&h264-level=40&h264-videobitdepth=8&h264-profile=high&h264-audiochannels=2&aac-profile=lc&TranscodeReasons=SubtitleCodecNotSupported")
-                /*jellyfinApi.api.dynamicHlsApi.getVariantHlsVideoPlaylistUrl(
-                    itemId,
-                    static = false,
-                    mediaSourceId = mediaSourceId,
-                    playSessionId = playSessionIds[itemId],
-                    videoCodec = "h265",
-                    audioCodec = "mp3",
-                    videoBitRate = 120000000,
-                    audioBitRate = 100000000,
-                    subtitleMethod = SubtitleDeliveryMethod.ENCODE,
-                    subtitleStreamIndex = 2,
-                    transcodeReasons = "ContainerBitrateExceedsLimit",
-                    subtitleCodec = "vtt",
-                    includeCredentials = true,
-                )*/
-                /*jellyfinApi.videosApi.getVideoStreamByContainerUrl(
-                    itemId, static = true, container = "mkv", mediaSourceId = mediaSourceId,
-                    playSessionId = playSessionIds[itemId], videoCodec = "h265",
-                    subtitleMethod = SubtitleDeliveryMethod.EXTERNAL,
-                    segmentContainer = "fmp4",
-                    )*/
+                jellyfinApi.api.createUrl("/videos/"+ itemId + "/master.m3u8?DeviceId="+ jellyfinApi.api.deviceInfo.id +"&MediaSourceId=" + mediaSourceId + "&VideoCodec=h264,h264&AudioCodec=mp3&AudioStreamIndex=1&SubtitleStreamIndex=-1&VideoBitrate=119872000&AudioBitrate=128000&AudioSampleRate=44100&MaxFramerate=23.976025&PlaySessionId="+playSessionIds[itemId]+"&api_key="+jellyfinApi.api.accessToken+"&SubtitleMethod=Encode&RequireAvc=false&SegmentContainer=ts&BreakOnNonKeyFrames=False&h264-level=40&h264-videobitdepth=8&h264-profile=high&h264-audiochannels=2&aac-profile=lc&TranscodeReasons=SubtitleCodecNotSupported")
             } catch (e: Exception) {
                 Timber.e(e)
                 "l"
+            }
+    }
+    override suspend fun getStreamUrl(itemId: UUID, mediaSourceId: String): String =
+        withContext(Dispatchers.IO) {
+            try {
+                jellyfinApi.videosApi.getVideoStreamUrl(
+                    itemId,
+                    static = true,
+                    mediaSourceId = mediaSourceId,
+                )
+            } catch (e: Exception) {
+                Timber.e(e)
+                ""
             }
         }
 
