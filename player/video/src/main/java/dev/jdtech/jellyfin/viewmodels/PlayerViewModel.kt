@@ -297,10 +297,8 @@ class PlayerViewModel @Inject internal constructor(
         val session = CastContext.getSharedInstance(context).sessionManager.currentCastSession
         viewModelScope.launch {
             try {
-                val test = repository.getEpisode(items.first().itemId)
-                val finTest = test.toPlayerItem(0, 0)
-                val item = finTest
-                val streamUrl = repository.getStreamCastUrl(item.itemId, item.mediaSourceId)
+                val item = items.first()
+                val streamUrl = repository.getStreamCastUrl(items.first().itemId, items.first().mediaSourceId)
 
                 if (session != null) {
                     val mediaInfo = buildMediaInfo(streamUrl, item)
