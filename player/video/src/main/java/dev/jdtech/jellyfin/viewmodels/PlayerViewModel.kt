@@ -232,21 +232,22 @@ class PlayerViewModel @Inject internal constructor(
                         }
 
                         val regex = Regex("SubtitleStreamIndex=(\\d+)")
+                        val matchResult = regex.find(streamUrl)
                         val newUrl =
                             jellyfinApi.api.createUrl("/videos/" + item.itemId + "/master.m3u8?DeviceId=" + jellyfinApi.api.deviceInfo.id + "&MediaSourceId=" + item.mediaSourceId + "&VideoCodec=h264,h264&AudioCodec=mp3&AudioStreamIndex=1&SubtitleStreamIndex=" + newIndex + "&VideoBitrate=119872000&AudioBitrate=128000&AudioSampleRate=44100&MaxFramerate=23.976025&PlaySessionId=" + (Math.random() * 10000).toInt() + "&api_key=" + jellyfinApi.api.accessToken + "&SubtitleMethod=Encode&RequireAvc=false&SegmentContainer=ts&BreakOnNonKeyFrames=False&h264-level=40&h264-videobitdepth=8&h264-profile=high&h264-audiochannels=2&aac-profile=lc&TranscodeReasons=SubtitleCodecNotSupported")
 
+                        val newMediaInfo = buildMediaInfo(newUrl,item)
+                        if (activeSubtitleTrackIds != null) {
 
-                        if (mediaInfo != null) {
-
-                            loadRemoteMedia(
-                                mediaStatus.streamPosition.toInt(),
-                                mCastSession,
-                                mediaInfo,
-                                newUrl,
-                                item
+                            remoteMediaClient.load(
+                                MediaLoadRequestData.Builder()
+                                    .setMediaInfo(newMediaInfo)
+                                    .setAutoplay(true)
+                                    .setCurrentTime(mediaStatus.streamPosition.toInt().toLong()).build()
                             )
                         }
-                        remoteMediaClient.unregisterCallback(this)
+
+
 
                     }
 
