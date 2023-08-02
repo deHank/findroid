@@ -25,7 +25,9 @@ allprojects {
         extensions.configure<CommonExtension<*, *, *, *, *>>("android") {
             lint {
                 informational += "MissingTranslation"
+
             }
+
         }
     }
 

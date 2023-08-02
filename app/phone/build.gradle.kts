@@ -46,7 +46,7 @@ android {
 
     flavorDimensions += "variant"
     productFlavors {
-        register("libre") {
+        create("google-play-services") {
             dimension = "variant"
             isDefault = true
         }
@@ -108,6 +108,7 @@ dependencies {
     implementation(libs.coil)
     implementation(libs.coil.svg)
     implementation(libs.hilt.android)
+    implementation("com.google.android.gms:play-services-cast-framework:21.3.0")
     kapt(libs.hilt.compiler)
     implementation(libs.jellyfin.core)
     compileOnly(libs.libmpv)
