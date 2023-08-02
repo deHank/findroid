@@ -10,7 +10,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -19,6 +18,9 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import com.google.android.gms.cast.framework.CastContext
+import com.google.android.gms.cast.framework.CastState
+import com.google.android.gms.cast.framework.media.RemoteMediaClient
 import com.google.android.material.R as MaterialR
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
@@ -26,7 +28,7 @@ import dev.jdtech.jellyfin.AppPreferences
 import dev.jdtech.jellyfin.R
 import dev.jdtech.jellyfin.adapters.PersonListAdapter
 import dev.jdtech.jellyfin.bindItemBackdropImage
-import dev.jdtech.jellyfin.core.R as CoreR
+import dev.jdtech.jellyfin.chromecast.ExpandedControlsActivity
 import dev.jdtech.jellyfin.databinding.FragmentMovieBinding
 import dev.jdtech.jellyfin.dialogs.ErrorDialogFragment
 import dev.jdtech.jellyfin.dialogs.getStorageSelectionDialog
@@ -39,14 +41,14 @@ import dev.jdtech.jellyfin.models.UiText
 import dev.jdtech.jellyfin.models.isDownloaded
 import dev.jdtech.jellyfin.models.isDownloading
 import dev.jdtech.jellyfin.utils.checkIfLoginRequired
-import dev.jdtech.jellyfin.utils.setTintColor
-import dev.jdtech.jellyfin.utils.setTintColorAttribute
+import dev.jdtech.jellyfin.utils.setIconTintColorAttribute
 import dev.jdtech.jellyfin.viewmodels.MovieViewModel
 import dev.jdtech.jellyfin.viewmodels.PlayerViewModel
-import java.util.UUID
-import javax.inject.Inject
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.util.UUID
+import javax.inject.Inject
+import dev.jdtech.jellyfin.core.R as CoreR
 
 @AndroidEntryPoint
 class MovieFragment : Fragment() {
@@ -64,7 +66,7 @@ class MovieFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): View {
         binding = FragmentMovieBinding.inflate(inflater, container, false)
 
@@ -94,12 +96,12 @@ class MovieFragment : Fragment() {
                                 downloadPreparingDialog.dismiss()
                             }
                             DownloadManager.STATUS_PENDING -> {
-                                binding.itemActions.downloadButton.setImageResource(android.R.color.transparent)
+                                binding.itemActions.downloadButton.setIconResource(android.R.color.transparent)
                                 binding.itemActions.progressDownload.isIndeterminate = true
                                 binding.itemActions.progressDownload.isVisible = true
                             }
                             DownloadManager.STATUS_RUNNING -> {
-                                binding.itemActions.downloadButton.setImageResource(android.R.color.transparent)
+                                binding.itemActions.downloadButton.setIconResource(android.R.color.transparent)
                                 binding.itemActions.progressDownload.isVisible = true
                                 if (progress < 5) {
                                     binding.itemActions.progressDownload.isIndeterminate = true
@@ -109,12 +111,12 @@ class MovieFragment : Fragment() {
                                 }
                             }
                             DownloadManager.STATUS_SUCCESSFUL -> {
-                                binding.itemActions.downloadButton.setImageResource(CoreR.drawable.ic_trash)
+                                binding.itemActions.downloadButton.setIconResource(CoreR.drawable.ic_trash)
                                 binding.itemActions.progressDownload.isVisible = false
                             }
                             else -> {
                                 binding.itemActions.progressDownload.isVisible = false
-                                binding.itemActions.downloadButton.setImageResource(CoreR.drawable.ic_download)
+                                binding.itemActions.downloadButton.setIconResource(CoreR.drawable.ic_download)
                             }
                         }
                     }
@@ -151,17 +153,18 @@ class MovieFragment : Fragment() {
 
         binding.itemActions.playButton.setOnClickListener {
             binding.itemActions.playButton.isEnabled = false
-            binding.itemActions.playButton.setImageResource(android.R.color.transparent)
-            binding.itemActions.progressCircular.isVisible = true
-            if (viewModel.item.sources.size > 1) {
+            binding.itemActions.playButton.setIconResource(android.R.color.transparent)
+            binding.itemActions.progressPlay.isVisible = true
+            if (viewModel.item.sources.filter { it.type == FindroidSourceType.REMOTE }.size > 1) {
                 val dialog = getVideoVersionDialog(
-                    requireContext(), viewModel.item,
+                    requireContext(),
+                    viewModel.item,
                     onItemSelected = {
                         playerViewModel.loadPlayerItems(viewModel.item, it)
                     },
                     onCancel = {
                         playButtonNormal()
-                    }
+                    },
                 )
                 dialog.show()
                 return@setOnClickListener
@@ -173,7 +176,7 @@ class MovieFragment : Fragment() {
             viewModel.item.trailer.let { trailerUri ->
                 val intent = Intent(
                     Intent.ACTION_VIEW,
-                    Uri.parse(trailerUri)
+                    Uri.parse(trailerUri),
                 )
                 try {
                     startActivity(intent)
@@ -196,11 +199,11 @@ class MovieFragment : Fragment() {
         binding.itemActions.downloadButton.setOnClickListener {
             if (viewModel.item.isDownloaded()) {
                 viewModel.deleteItem()
-                binding.itemActions.downloadButton.setImageResource(CoreR.drawable.ic_download)
+                binding.itemActions.downloadButton.setIconResource(CoreR.drawable.ic_download)
             } else if (viewModel.item.isDownloading()) {
                 createCancelDialog()
             } else {
-                binding.itemActions.downloadButton.setImageResource(android.R.color.transparent)
+                binding.itemActions.downloadButton.setIconResource(android.R.color.transparent)
                 binding.itemActions.progressDownload.isIndeterminate = true
                 binding.itemActions.progressDownload.isVisible = true
                 if (requireContext().getExternalFilesDirs(null).filterNotNull().size > 1) {
@@ -217,8 +220,8 @@ class MovieFragment : Fragment() {
                                     },
                                     onCancel = {
                                         binding.itemActions.progressDownload.isVisible = false
-                                        binding.itemActions.downloadButton.setImageResource(CoreR.drawable.ic_download)
-                                    }
+                                        binding.itemActions.downloadButton.setIconResource(CoreR.drawable.ic_download)
+                                    },
                                 )
                                 dialog.show()
                                 return@getStorageSelectionDialog
@@ -228,8 +231,8 @@ class MovieFragment : Fragment() {
                         },
                         onCancel = {
                             binding.itemActions.progressDownload.isVisible = false
-                            binding.itemActions.downloadButton.setImageResource(CoreR.drawable.ic_download)
-                        }
+                            binding.itemActions.downloadButton.setIconResource(CoreR.drawable.ic_download)
+                        },
                     )
                     storageDialog.show()
                     return@setOnClickListener
@@ -244,8 +247,8 @@ class MovieFragment : Fragment() {
                         },
                         onCancel = {
                             binding.itemActions.progressDownload.isVisible = false
-                            binding.itemActions.downloadButton.setImageResource(CoreR.drawable.ic_download)
-                        }
+                            binding.itemActions.downloadButton.setIconResource(CoreR.drawable.ic_download)
+                        },
                     )
                     dialog.show()
                     return@setOnClickListener
@@ -282,16 +285,16 @@ class MovieFragment : Fragment() {
             binding.communityRating.isVisible = item.communityRating != null
             binding.actors.isVisible = actors.isNotEmpty()
 
-            val canPlay = item.canPlay && item.sources.isNotEmpty()
-            binding.itemActions.playButton.isEnabled = canPlay
-            binding.itemActions.playButton.alpha = if (!canPlay) 0.5F else 1.0F
+            binding.itemActions.playButton.isEnabled = item.canPlay && item.sources.isNotEmpty()
+            binding.itemActions.checkButton.isEnabled = true
+            binding.itemActions.favoriteButton.isEnabled = true
 
             bindCheckButtonState(item.played)
 
             bindFavoriteButtonState(item.favorite)
 
             if (item.isDownloaded()) {
-                binding.itemActions.downloadButton.setImageResource(CoreR.drawable.ic_trash)
+                binding.itemActions.downloadButton.setIconResource(CoreR.drawable.ic_trash)
             }
 
             when (canDownload || canDelete) {
@@ -327,7 +330,8 @@ class MovieFragment : Fragment() {
                         videoProfileChip.isVisible = when (this) {
                             DisplayProfile.HDR,
                             DisplayProfile.HDR10,
-                            DisplayProfile.HLG -> {
+                            DisplayProfile.HLG,
+                            -> {
                                 videoProfileChip.chipStartPadding = .0f
                                 true
                             }
@@ -346,7 +350,9 @@ class MovieFragment : Fragment() {
                             audioCodecChip.isVisible = true
                             if (it.isAtmos.firstOrNull() == true) {
                                 "${codec.raw} | Atmos"
-                            } else codec.raw
+                            } else {
+                                codec.raw
+                            }
                         }
 
                         AudioCodec.DTS -> {
@@ -411,10 +417,10 @@ class MovieFragment : Fragment() {
 
     private fun bindCheckButtonState(played: Boolean) {
         when (played) {
-            true -> binding.itemActions.checkButton.setTintColor(CoreR.color.red, requireActivity().theme)
-            false -> binding.itemActions.checkButton.setTintColorAttribute(
-                MaterialR.attr.colorOnSecondaryContainer,
-                requireActivity().theme
+            true -> binding.itemActions.checkButton.setIconTintResource(CoreR.color.red)
+            false -> binding.itemActions.checkButton.setIconTintColorAttribute(
+                com.google.android.material.R.attr.colorOnSecondaryContainer,
+                requireActivity().theme,
             )
         }
     }
@@ -424,25 +430,20 @@ class MovieFragment : Fragment() {
             true -> CoreR.drawable.ic_heart_filled
             false -> CoreR.drawable.ic_heart
         }
-        binding.itemActions.favoriteButton.setImageResource(favoriteDrawable)
+        binding.itemActions.favoriteButton.setIconResource(favoriteDrawable)
         when (favorite) {
-            true -> binding.itemActions.favoriteButton.setTintColor(CoreR.color.red, requireActivity().theme)
-            false -> binding.itemActions.favoriteButton.setTintColorAttribute(
-                MaterialR.attr.colorOnSecondaryContainer,
-                requireActivity().theme
+            true -> binding.itemActions.favoriteButton.setIconTintResource(CoreR.color.red)
+            false -> binding.itemActions.favoriteButton.setIconTintColorAttribute(
+                com.google.android.material.R.attr.colorOnSecondaryContainer,
+                requireActivity().theme,
             )
         }
     }
 
     private fun bindPlayerItems(items: PlayerViewModel.PlayerItems) {
         navigateToPlayerActivity(items.items.toTypedArray())
-        binding.itemActions.playButton.setImageDrawable(
-            ContextCompat.getDrawable(
-                requireActivity(),
-                CoreR.drawable.ic_play
-            )
-        )
-        binding.itemActions.progressCircular.visibility = View.INVISIBLE
+        binding.itemActions.playButton.setIconResource(CoreR.drawable.ic_play)
+        binding.itemActions.progressPlay.visibility = View.INVISIBLE
     }
 
     private fun bindPlayerItemsError(error: PlayerViewModel.PlayerItemError) {
@@ -457,13 +458,8 @@ class MovieFragment : Fragment() {
 
     private fun playButtonNormal() {
         binding.itemActions.playButton.isEnabled = true
-        binding.itemActions.playButton.setImageDrawable(
-            ContextCompat.getDrawable(
-                requireActivity(),
-                CoreR.drawable.ic_play
-            )
-        )
-        binding.itemActions.progressCircular.visibility = View.INVISIBLE
+        binding.itemActions.playButton.setIconResource(CoreR.drawable.ic_play)
+        binding.itemActions.progressPlay.visibility = View.INVISIBLE
     }
 
     private fun createErrorDialog(uiText: UiText) {
@@ -475,7 +471,7 @@ class MovieFragment : Fragment() {
             }
         builder.show()
         binding.itemActions.progressDownload.isVisible = false
-        binding.itemActions.downloadButton.setImageResource(CoreR.drawable.ic_download)
+        binding.itemActions.downloadButton.setIconResource(CoreR.drawable.ic_download)
     }
 
     private fun createDownloadPreparingDialog() {
@@ -505,16 +501,30 @@ class MovieFragment : Fragment() {
     private fun navigateToPlayerActivity(
         playerItems: Array<PlayerItem>,
     ) {
-        findNavController().navigate(
-            MovieFragmentDirections.actionMovieFragmentToPlayerActivity(
-                playerItems
+        val castContext = CastContext.getSharedInstance(requireContext().applicationContext)
+        val session = castContext.sessionManager.currentCastSession
+        if (session == null || castContext.castState != CastState.CONNECTED) {
+            findNavController().navigate(
+                MovieFragmentDirections.actionMovieFragmentToPlayerActivity(
+                    playerItems,
+                )
             )
-        )
+        }else {
+            val remoteMediaClient = session.remoteMediaClient ?: return
+            remoteMediaClient.registerCallback(object : RemoteMediaClient.Callback() {
+                override fun onStatusUpdated() {
+                    val intent = Intent(requireActivity(), ExpandedControlsActivity::class.java)
+                    startActivity(intent)
+                    remoteMediaClient.unregisterCallback(this)
+                }
+            })
+            playerViewModel.startCast(playerItems, requireContext())
+        }
     }
 
     private fun navigateToPersonDetail(personId: UUID) {
         findNavController().navigate(
-            MovieFragmentDirections.actionMovieFragmentToPersonDetailFragment(personId)
+            MovieFragmentDirections.actionMovieFragmentToPersonDetailFragment(personId),
         )
     }
 }

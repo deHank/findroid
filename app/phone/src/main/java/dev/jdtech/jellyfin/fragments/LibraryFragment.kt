@@ -18,14 +18,14 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.paging.LoadState
+import com.google.android.gms.cast.framework.CastButtonFactory
 import dagger.hilt.android.AndroidEntryPoint
 import dev.jdtech.jellyfin.AppPreferences
 import dev.jdtech.jellyfin.adapters.ViewItemPagingAdapter
-import dev.jdtech.jellyfin.core.R as CoreR
+import dev.jdtech.jellyfin.core.R
 import dev.jdtech.jellyfin.databinding.FragmentLibraryBinding
 import dev.jdtech.jellyfin.dialogs.ErrorDialogFragment
 import dev.jdtech.jellyfin.dialogs.SortDialogFragment
-import dev.jdtech.jellyfin.models.CollectionType
 import dev.jdtech.jellyfin.models.FindroidBoxSet
 import dev.jdtech.jellyfin.models.FindroidItem
 import dev.jdtech.jellyfin.models.FindroidMovie
@@ -33,10 +33,10 @@ import dev.jdtech.jellyfin.models.FindroidShow
 import dev.jdtech.jellyfin.models.SortBy
 import dev.jdtech.jellyfin.utils.checkIfLoginRequired
 import dev.jdtech.jellyfin.viewmodels.LibraryViewModel
-import java.lang.IllegalArgumentException
-import javax.inject.Inject
 import kotlinx.coroutines.launch
 import org.jellyfin.sdk.model.api.SortOrder
+import javax.inject.Inject
+import dev.jdtech.jellyfin.core.R as CoreR
 
 @AndroidEntryPoint
 class LibraryFragment : Fragment() {
@@ -53,7 +53,7 @@ class LibraryFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): View {
         binding = FragmentLibraryBinding.inflate(inflater, container, false)
         return binding.root
@@ -67,6 +67,7 @@ class LibraryFragment : Fragment() {
             object : MenuProvider {
                 override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
                     menuInflater.inflate(CoreR.menu.library_menu, menu)
+                    CastButtonFactory.setUpMediaRouteButton(requireContext(), menu, R.id.media_route_menu_item)
                 }
 
                 override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
@@ -76,10 +77,10 @@ class LibraryFragment : Fragment() {
                                 args.libraryId,
                                 args.libraryType,
                                 viewModel,
-                                "sortBy"
+                                "sortBy",
                             ).show(
                                 parentFragmentManager,
-                                "sortdialog"
+                                "sortdialog",
                             )
                             true
                         }
@@ -88,10 +89,10 @@ class LibraryFragment : Fragment() {
                                 args.libraryId,
                                 args.libraryType,
                                 viewModel,
-                                "sortOrder"
+                                "sortOrder",
                             ).show(
                                 parentFragmentManager,
-                                "sortdialog"
+                                "sortdialog",
                             )
                             true
                         }
@@ -99,7 +100,8 @@ class LibraryFragment : Fragment() {
                     }
                 }
             },
-            viewLifecycleOwner, Lifecycle.State.RESUMED
+            viewLifecycleOwner,
+            Lifecycle.State.RESUMED,
         )
 
         binding.errorLayout.errorRetryButton.setOnClickListener {
@@ -109,19 +111,15 @@ class LibraryFragment : Fragment() {
         binding.errorLayout.errorDetailsButton.setOnClickListener {
             errorDialog.show(
                 parentFragmentManager,
-                ErrorDialogFragment.TAG
+                ErrorDialogFragment.TAG,
             )
         }
 
         binding.itemsRecyclerView.adapter =
             ViewItemPagingAdapter(
                 ViewItemPagingAdapter.OnClickListener { item ->
-                    if (args.libraryType == CollectionType.BoxSets.type) {
-                        navigateToItem(item)
-                    } else {
-                        navigateToItem(item)
-                    }
-                }
+                    navigateToItem(item)
+                },
             )
 
         (binding.itemsRecyclerView.adapter as ViewItemPagingAdapter).addLoadStateListener {
@@ -167,7 +165,7 @@ class LibraryFragment : Fragment() {
                     args.libraryId,
                     args.libraryType,
                     sortBy = sortBy,
-                    sortOrder = sortOrder
+                    sortOrder = sortOrder,
                 )
             }
         }
@@ -206,24 +204,24 @@ class LibraryFragment : Fragment() {
                 findNavController().navigate(
                     LibraryFragmentDirections.actionLibraryFragmentToMovieFragment(
                         item.id,
-                        item.name
-                    )
+                        item.name,
+                    ),
                 )
             }
             is FindroidShow -> {
                 findNavController().navigate(
                     LibraryFragmentDirections.actionLibraryFragmentToShowFragment(
                         item.id,
-                        item.name
-                    )
+                        item.name,
+                    ),
                 )
             }
             is FindroidBoxSet -> {
                 findNavController().navigate(
                     LibraryFragmentDirections.actionLibraryFragmentToCollectionFragment(
                         item.id,
-                        item.name
-                    )
+                        item.name,
+                    ),
                 )
             }
         }

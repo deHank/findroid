@@ -1,31 +1,32 @@
 package dev.jdtech.jellyfin.utils
 
+import android.graphics.Bitmap
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.media3.common.Player
 import androidx.media3.ui.TimeBar
-import com.bumptech.glide.Glide
-import com.bumptech.glide.load.resource.bitmap.RoundedCorners
+import coil.load
+import coil.transform.RoundedCornersTransformation
 import dev.jdtech.jellyfin.utils.bif.BifData
 import dev.jdtech.jellyfin.utils.bif.BifUtil
-import kotlinx.coroutines.flow.StateFlow
 import timber.log.Timber
 
 class PreviewScrubListener(
     private val scrubbingPreview: ImageView,
     private val timeBarView: View,
     private val player: Player,
-    private val currentTrickPlay: StateFlow<BifData?>
 ) : TimeBar.OnScrubListener {
-
-    private val roundedCorners = RoundedCorners(10)
+    var currentTrickPlay: BifData? = null
+    private val roundedCorners = RoundedCornersTransformation(10f)
+    private var currentBitMap: Bitmap? = null
 
     override fun onScrubStart(timeBar: TimeBar, position: Long) {
         Timber.d("Scrubbing started at $position")
 
-        if (currentTrickPlay.value == null)
+        if (currentTrickPlay == null) {
             return
+        }
 
         scrubbingPreview.visibility = View.VISIBLE
         onScrubMove(timeBar, position)
@@ -34,7 +35,7 @@ class PreviewScrubListener(
     override fun onScrubMove(timeBar: TimeBar, position: Long) {
         Timber.d("Scrubbing to $position")
 
-        val currentBifData = currentTrickPlay.value ?: return
+        val currentBifData = currentTrickPlay ?: return
         val image = BifUtil.getTrickPlayFrame(position.toInt(), currentBifData) ?: return
 
         val parent = scrubbingPreview.parent as ViewGroup
@@ -54,10 +55,12 @@ class PreviewScrubListener(
 
         scrubbingPreview.x = layoutX
 
-        Glide.with(scrubbingPreview)
-            .load(image)
-            .transform(roundedCorners)
-            .into(scrubbingPreview)
+        if (currentBitMap != image) {
+            scrubbingPreview.load(image) {
+                transformations(roundedCorners)
+            }
+            currentBitMap = image
+        }
     }
 
     override fun onScrubStop(timeBar: TimeBar, position: Long, canceled: Boolean) {

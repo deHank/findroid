@@ -22,8 +22,6 @@ import dev.jdtech.jellyfin.models.toFindroidShow
 import dev.jdtech.jellyfin.models.toFindroidSource
 import dev.jdtech.jellyfin.models.toIntro
 import dev.jdtech.jellyfin.models.toTrickPlayManifest
-import java.io.File
-import java.util.UUID
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
@@ -33,6 +31,8 @@ import org.jellyfin.sdk.model.api.ItemFields
 import org.jellyfin.sdk.model.api.PublicSystemInfo
 import org.jellyfin.sdk.model.api.SortOrder
 import org.jellyfin.sdk.model.api.UserConfiguration
+import java.io.File
+import java.util.UUID
 
 class JellyfinRepositoryOfflineImpl(
     private val context: Context,
@@ -84,7 +84,7 @@ class JellyfinRepositoryOfflineImpl(
         sortBy: SortBy,
         sortOrder: SortOrder,
         startIndex: Int?,
-        limit: Int?
+        limit: Int?,
     ): List<FindroidItem> {
         TODO("Not yet implemented")
     }
@@ -94,7 +94,7 @@ class JellyfinRepositoryOfflineImpl(
         includeTypes: List<BaseItemKind>?,
         recursive: Boolean,
         sortBy: SortBy,
-        sortOrder: SortOrder
+        sortOrder: SortOrder,
     ): Flow<PagingData<FindroidItem>> {
         TODO("Not yet implemented")
     }
@@ -102,7 +102,7 @@ class JellyfinRepositoryOfflineImpl(
     override suspend fun getPersonItems(
         personIds: List<UUID>,
         includeTypes: List<BaseItemKind>?,
-        recursive: Boolean
+        recursive: Boolean,
     ): List<FindroidItem> {
         TODO("Not yet implemented")
     }
@@ -165,7 +165,9 @@ class JellyfinRepositoryOfflineImpl(
         offline: Boolean,
     ): List<FindroidEpisode> =
         withContext(Dispatchers.IO) {
-            database.getEpisodesBySeasonId(seasonId).map { it.toFindroidEpisode(database, jellyfinApi.userId!!) }
+            val items = database.getEpisodesBySeasonId(seasonId).map { it.toFindroidEpisode(database, jellyfinApi.userId!!) }
+            if (startItemId != null) return@withContext items.dropWhile { it.id != startItemId }
+            items
         }
 
     override suspend fun getMediaSources(itemId: UUID, includePath: Boolean): List<FindroidSource> =
@@ -193,7 +195,7 @@ class JellyfinRepositoryOfflineImpl(
             if (trickPlayManifest != null) {
                 return@withContext File(
                     context.filesDir,
-                    "trickplay/$itemId.bif"
+                    "trickplay/$itemId.bif",
                 ).readBytes()
             }
             null
@@ -226,7 +228,7 @@ class JellyfinRepositoryOfflineImpl(
     override suspend fun postPlaybackProgress(
         itemId: UUID,
         positionTicks: Long,
-        isPaused: Boolean
+        isPaused: Boolean,
     ) {
         withContext(Dispatchers.IO) {
             database.setPlaybackPositionTicks(itemId, jellyfinApi.userId!!, positionTicks)
@@ -280,16 +282,20 @@ class JellyfinRepositoryOfflineImpl(
             val items = mutableListOf<FindroidItem>()
             items.addAll(
                 database.getMoviesByServerId(appPreferences.currentServer!!)
-                    .map { it.toFindroidMovie(database, jellyfinApi.userId!!) }
+                    .map { it.toFindroidMovie(database, jellyfinApi.userId!!) },
             )
             items.addAll(
                 database.getShowsByServerId(appPreferences.currentServer!!)
-                    .map { it.toFindroidShow(database, jellyfinApi.userId!!) }
+                    .map { it.toFindroidShow(database, jellyfinApi.userId!!) },
             )
             items
         }
 
     override fun getUserId(): UUID {
         return jellyfinApi.userId!!
+    }
+
+    override suspend fun getStreamCastUrl(itemId: UUID, mediaSourceId: String): String {
+        TODO("Not yet implemented")
     }
 }

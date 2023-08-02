@@ -1,6 +1,5 @@
 package dev.jdtech.jellyfin
 
-import android.os.Build
 import android.view.View
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
@@ -30,6 +29,7 @@ abstract class BasePlayerActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
+
         viewModel.playWhenReady = viewModel.player.playWhenReady == true
         viewModel.player.playWhenReady = false
     }
@@ -50,16 +50,14 @@ abstract class BasePlayerActivity : AppCompatActivity() {
             )
 
         window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            window.attributes.layoutInDisplayCutoutMode =
-                WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
-        }
+        window.attributes.layoutInDisplayCutoutMode =
+            WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
     }
 
     protected fun isRendererType(
         mappedTrackInfo: MappingTrackSelector.MappedTrackInfo,
         rendererIndex: Int,
-        type: Int
+        type: Int,
     ): Boolean {
         val trackGroupArray = mappedTrackInfo.getTrackGroups(rendererIndex)
         if (trackGroupArray.length == 0) {
@@ -70,18 +68,16 @@ abstract class BasePlayerActivity : AppCompatActivity() {
     }
 
     protected fun configureInsets(playerControls: View) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            playerControls
-                .setOnApplyWindowInsetsListener { _, windowInsets ->
-                    val cutout = windowInsets.displayCutout
-                    playerControls.updatePadding(
-                        left = cutout?.safeInsetLeft ?: 0,
-                        top = cutout?.safeInsetTop ?: 0,
-                        right = cutout?.safeInsetRight ?: 0,
-                        bottom = cutout?.safeInsetBottom ?: 0,
-                    )
-                    return@setOnApplyWindowInsetsListener windowInsets
-                }
-        }
+        playerControls
+            .setOnApplyWindowInsetsListener { _, windowInsets ->
+                val cutout = windowInsets.displayCutout
+                playerControls.updatePadding(
+                    left = cutout?.safeInsetLeft ?: 0,
+                    top = cutout?.safeInsetTop ?: 0,
+                    right = cutout?.safeInsetRight ?: 0,
+                    bottom = cutout?.safeInsetBottom ?: 0,
+                )
+                return@setOnApplyWindowInsetsListener windowInsets
+            }
     }
 }

@@ -9,11 +9,11 @@ plugins {
 
 android {
     namespace = "dev.jdtech.jellyfin.player.video"
-    compileSdk = 33
-    buildToolsVersion = "33.0.2"
+    compileSdk = 34
+    buildToolsVersion = "34.0.0"
 
     defaultConfig {
-        minSdk = 27
+        minSdk = 28
     }
 
     buildTypes {
@@ -32,9 +32,9 @@ android {
 }
 
 ktlint {
+    version.set("0.50.0")
     android.set(true)
     ignoreFailures.set(false)
-    disabledRules.add("max-line-length")
 }
 
 dependencies {
@@ -47,6 +47,8 @@ dependencies {
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.media3.exoplayer.hls)
     implementation(libs.hilt.android)
+    implementation("com.google.android.gms:play-services-cast:21.3.0")
+    implementation("com.google.android.gms:play-services-cast-framework:21.3.0")
     kapt(libs.hilt.compiler)
     implementation(libs.jellyfin.core)
     implementation(libs.libmpv)

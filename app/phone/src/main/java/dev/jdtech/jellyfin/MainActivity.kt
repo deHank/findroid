@@ -18,15 +18,20 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
+import com.google.android.gms.cast.framework.CastContext
+import com.google.android.gms.cast.framework.CastSession
+import com.google.android.gms.cast.framework.SessionManager
+import com.google.android.gms.cast.framework.SessionManagerListener
 import com.google.android.material.navigation.NavigationBarView
 import dagger.hilt.android.AndroidEntryPoint
-import dev.jdtech.jellyfin.core.R as CoreR
+import dev.jdtech.jellyfin.api.JellyfinApi
 import dev.jdtech.jellyfin.database.ServerDatabaseDao
 import dev.jdtech.jellyfin.databinding.ActivityMainBinding
 import dev.jdtech.jellyfin.viewmodels.MainViewModel
 import dev.jdtech.jellyfin.work.SyncWorker
-import javax.inject.Inject
 import kotlinx.coroutines.launch
+import javax.inject.Inject
+import dev.jdtech.jellyfin.core.R as CoreR
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -34,6 +39,10 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
 
     private val viewModel: MainViewModel by viewModels()
+    private var castSession: CastSession? = null
+    private lateinit var sessionManager: SessionManager
+    private val sessionManagerListener: SessionManagerListener<CastSession> =
+        SessionManagerListenerImpl(this)
 
     @Inject
     lateinit var database: ServerDatabaseDao
@@ -42,6 +51,9 @@ class MainActivity : AppCompatActivity() {
     lateinit var appPreferences: AppPreferences
 
     private lateinit var navController: NavController
+
+    @Inject
+    lateinit var jellyfinApi: JellyfinApi
 
     @OptIn(NavigationUiSaveStateControl::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -53,9 +65,9 @@ class MainActivity : AppCompatActivity() {
             .setConstraints(
                 Constraints.Builder()
                     .setRequiredNetworkType(
-                        NetworkType.CONNECTED
+                        NetworkType.CONNECTED,
                     )
-                    .build()
+                    .build(),
             )
             .build()
 
@@ -71,6 +83,7 @@ class MainActivity : AppCompatActivity() {
             setTheme(CoreR.style.Theme_FindroidAMOLED)
         }
 
+        sessionManager = CastContext.getSharedInstance(this).sessionManager
         binding = ActivityMainBinding.inflate(layoutInflater)
 
         setContentView(binding.root)
@@ -105,7 +118,7 @@ class MainActivity : AppCompatActivity() {
                 R.id.mediaFragment,
                 R.id.favoriteFragment,
                 R.id.downloadsFragment,
-            )
+            ),
         )
 
         setupActionBarWithNavController(navController, appBarConfiguration)
@@ -118,9 +131,23 @@ class MainActivity : AppCompatActivity() {
                 R.id.twoPaneSettingsFragment, R.id.serverSelectFragment, R.id.addServerFragment, R.id.loginFragment, com.mikepenz.aboutlibraries.R.id.about_libraries_dest, R.id.usersFragment, R.id.serverAddressesFragment -> View.GONE
                 else -> View.VISIBLE
             }
-            if (destination.id == com.mikepenz.aboutlibraries.R.id.about_libraries_dest) binding.mainToolbar.title =
-                getString(CoreR.string.app_info)
+            if (destination.id == com.mikepenz.aboutlibraries.R.id.about_libraries_dest) {
+                binding.mainToolbar.title =
+                    getString(CoreR.string.app_info)
+            }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        castSession = sessionManager.currentCastSession
+        sessionManager.addSessionManagerListener(sessionManagerListener, CastSession::class.java)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        sessionManager.removeSessionManagerListener(sessionManagerListener, CastSession::class.java)
+        //castSession = null
     }
 
     override fun onSupportNavigateUp(): Boolean {
@@ -169,6 +196,47 @@ class MainActivity : AppCompatActivity() {
             } catch (_: Exception) {}
 
             appPreferences.downloadsMigrated = true
+        }
+    }
+
+    companion object {
+        private class SessionManagerListenerImpl(private val mainActivity: MainActivity) :
+            SessionManagerListener<CastSession> {
+            override fun onSessionStarted(session: CastSession, sessionId: String) {
+                mainActivity.invalidateOptionsMenu()
+//                val thing =
+//                    "{\"options\":{},\"command\":\"Identify\",\"userId\":\"${mainActivity.jellyfinApi.userId}\",\"deviceId\":\"${mainActivity.jellyfinApi.api.deviceInfo.id}\",\"accessToken\":\"${mainActivity.jellyfinApi.api.accessToken}\",\"serverAddress\":\"${mainActivity.jellyfinApi.api.baseUrl}\",\"serverId\":\"\",\"serverVersion\":\"\",\"receiverName\":\"\"}"
+//                session.sendMessage("urn:x-cast:com.connectsdk", thing)
+//                session.setMessageReceivedCallbacks(
+//                    "urn:x-cast:com.connectsdk"
+//                ) { _, _, message -> Timber.i(message) }
+            }
+
+            override fun onSessionResumed(session: CastSession, wasSuspended: Boolean) {
+                mainActivity.invalidateOptionsMenu()
+            }
+
+            override fun onSessionEnded(session: CastSession, error: Int) {
+                //            finish()
+            }
+
+            override fun onSessionEnding(p0: CastSession) {
+            }
+
+            override fun onSessionResumeFailed(p0: CastSession, p1: Int) {
+            }
+
+            override fun onSessionResuming(p0: CastSession, p1: String) {
+            }
+
+            override fun onSessionStartFailed(p0: CastSession, p1: Int) {
+            }
+
+            override fun onSessionStarting(p0: CastSession) {
+            }
+
+            override fun onSessionSuspended(p0: CastSession, p1: Int) {
+            }
         }
     }
 }
