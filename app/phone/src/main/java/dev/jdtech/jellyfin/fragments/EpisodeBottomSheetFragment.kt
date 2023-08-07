@@ -400,9 +400,9 @@ class EpisodeBottomSheetFragment : BottomSheetDialogFragment() {
             findNavController().navigate(
                 EpisodeBottomSheetFragmentDirections.actionEpisodeBottomSheetFragmentToPlayerActivity(
                     playerItems,
-                )
+                ),
             )
-        }else {
+        } else {
             val remoteMediaClient = session.remoteMediaClient ?: return
             remoteMediaClient.registerCallback(object : RemoteMediaClient.Callback() {
                 override fun onStatusUpdated() {
@@ -412,10 +412,9 @@ class EpisodeBottomSheetFragment : BottomSheetDialogFragment() {
                 }
             })
             playerViewModel.startCast(playerItems, requireContext())
-            //remoteMediaClient.mediaStatus
         }
         if (session != null) {
-            if(session.remoteMediaClient?.isPaused() == true){
+            if (session.remoteMediaClient?.isPaused() == true) {
                 print("yeet")
             }
         }
