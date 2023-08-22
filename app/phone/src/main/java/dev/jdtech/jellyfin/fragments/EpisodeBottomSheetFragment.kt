@@ -3,6 +3,7 @@ package dev.jdtech.jellyfin.fragments
 import android.app.DownloadManager
 import android.content.Intent
 import android.os.Bundle
+import android.text.format.Formatter
 import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
@@ -23,6 +24,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
+import dev.jdtech.jellyfin.AppPreferences
 import dev.jdtech.jellyfin.R
 import dev.jdtech.jellyfin.bindCardItemImage
 import dev.jdtech.jellyfin.chromecast.ExpandedControlsActivity
@@ -45,6 +47,7 @@ import java.text.DateFormat
 import java.time.ZoneOffset
 import java.util.Date
 import java.util.UUID
+import javax.inject.Inject
 import android.R as AndroidR
 import com.google.android.material.R as MaterialR
 import dev.jdtech.jellyfin.core.R as CoreR
@@ -58,6 +61,9 @@ class EpisodeBottomSheetFragment : BottomSheetDialogFragment() {
     private val playerViewModel: PlayerViewModel by viewModels()
 
     private lateinit var downloadPreparingDialog: AlertDialog
+
+    @Inject
+    lateinit var appPreferences: AppPreferences
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -235,6 +241,9 @@ class EpisodeBottomSheetFragment : BottomSheetDialogFragment() {
 
     private fun bindUiStateNormal(uiState: EpisodeBottomSheetViewModel.UiState.Normal) {
         uiState.apply {
+            val size = episode.sources.getOrNull(0)?.size?.let {
+                Formatter.formatFileSize(requireContext(), it)
+            }
             val canDownload = episode.canDownload && episode.sources.any { it.type == FindroidSourceType.REMOTE }
             val canDelete = episode.sources.any { it.type == FindroidSourceType.LOCAL }
 
@@ -288,6 +297,11 @@ class EpisodeBottomSheetFragment : BottomSheetDialogFragment() {
             binding.communityRating.isVisible = episode.communityRating != null
             binding.communityRating.text = episode.communityRating.toString()
             binding.missingIcon.isVisible = false
+
+            if (appPreferences.displayExtraInfo) {
+                size?.let { binding.size.text = it }
+                binding.size.isVisible = size != null
+            }
 
             bindCardItemImage(binding.episodeImage, episode)
         }
