@@ -410,7 +410,7 @@ class PlayerViewModel @Inject internal constructor(
                     MediaTrack.TYPE_AUDIO
                 } else {
                     MediaTrack.TYPE_TEXT
-                }
+                },
             )
                 .setName(externalSubtitle.displayTitle + " " + externalSubtitle.type)
                 .setLanguage(externalSubtitle.language)
