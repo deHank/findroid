@@ -357,7 +357,6 @@ class PlayerViewModel @Inject internal constructor(
         val myProgressListener =
             MyProgressListener(jellyfinApi, item, repository, remoteMediaClient)
         progressListeners.add(myProgressListener)
-
         remoteMediaClient.registerCallback(callback)
         remoteMediaClient.addProgressListener(myProgressListener, 50000)
         remoteMediaClient.load(
@@ -367,10 +366,7 @@ class PlayerViewModel @Inject internal constructor(
                 //.setActiveTrackIds(longArrayOf(0,2))
                 .setCurrentTime(position.toLong()).build(),
         )
-
-
         val mediaStatus = remoteMediaClient.mediaStatus
-
         val activeMediaTracks = mediaStatus?.activeTrackIds
         //previousSubtitleTrackIds = mediaStatus?.activeTrackIds
     }
@@ -426,12 +422,8 @@ class PlayerViewModel @Inject internal constructor(
                 .setLanguage(externalSubtitle.language)
                 .build()
         }
-
         val copy = mediaSubtitles?.drop(1)
-
-
         val audioTracks: MutableList<MediaTrack> = ArrayList<MediaTrack>()
-
         val audioTracks2 = episode.mediaStreams?.mapIndexed { index, mediaStream ->
             if (!mediaStream.isTextSubtitleStream) {
                 MediaTrack.Builder(index.toLong(), MediaTrack.TYPE_AUDIO)
@@ -453,7 +445,6 @@ class PlayerViewModel @Inject internal constructor(
             .build()
         audioTracks.add(frenchAudio)
         audioTracks.add(engAudio)
-
         return MediaInfo.Builder(streamUrl)
             .setStreamType(MediaInfo.STREAM_TYPE_BUFFERED)
             .setContentType(MimeTypes.VIDEO_MP4)
@@ -471,7 +462,7 @@ class PlayerViewModel @Inject internal constructor(
                 val streamUrl =
                     repository.getStreamCastUrl(
                         items.first().itemId,
-                        items.first().mediaSourceId
+                        items.first().mediaSourceId,
                     )
                 val episode = repository.getItem(item.itemId)
                 if (session != null) {
