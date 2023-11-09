@@ -290,7 +290,7 @@ class PlayerViewModel @Inject internal constructor(
 
                                 for (track in activeSubtitleTrackIds) {
                                     if (mediaInfo?.mediaTracks?.get(track.toInt())?.type?.equals(
-                                            MediaTrack.TYPE_AUDIO
+                                            MediaTrack.TYPE_AUDIO,
                                         ) == true
                                     ) {
                                         newAudioIndex = track.toInt()
@@ -298,7 +298,6 @@ class PlayerViewModel @Inject internal constructor(
                                         subtitleIndex = track.toInt()
                                     }
                                 }
-
                             }
                             if (activeSubtitleTrackIds.size > 1) {
                                 if (subtitleIndex != newIndex) {
@@ -324,15 +323,15 @@ class PlayerViewModel @Inject internal constructor(
                             var newUrl = mediaInfo?.contentUrl
                             newUrl = newUrl!!.replace(
                                 Regex("AudioStreamIndex=-?\\d+"),
-                                "AudioStreamIndex=" + newAudioIndex
+                                "AudioStreamIndex=" + newAudioIndex,
                             )
                             newUrl = newUrl.replace(
                                 Regex("SubtitleStreamIndex=-?\\d+"),
-                                "SubtitleStreamIndex=" + subtitleIndex
+                                "SubtitleStreamIndex=" + subtitleIndex,
                             )
                             newUrl = newUrl.replace(
                                 Regex("PlaySessionId=[\\w&]+"),
-                                "PlaySessionId=" + (Math.random() * 10000).toInt() + "&api_key"
+                                "PlaySessionId=" + (Math.random() * 10000).toInt() + "&api_key",
                             )
                             val newMediaInfo = buildMediaInfo(newUrl, item, episode)
 
@@ -344,11 +343,8 @@ class PlayerViewModel @Inject internal constructor(
                                     .setCurrentTime(mediaStatus!!.streamPosition.toInt().toLong())
                                     .build(),
                             )
-
-
                         }
                     }
-
                 }
                 previousSubtitleTrackIds = mediaStatus?.activeTrackIds
             }
@@ -363,12 +359,10 @@ class PlayerViewModel @Inject internal constructor(
             MediaLoadRequestData.Builder()
                 .setMediaInfo(mediaInfo)
                 .setAutoplay(true)
-                //.setActiveTrackIds(longArrayOf(0,2))
                 .setCurrentTime(position.toLong()).build(),
         )
         val mediaStatus = remoteMediaClient.mediaStatus
         val activeMediaTracks = mediaStatus?.activeTrackIds
-        //previousSubtitleTrackIds = mediaStatus?.activeTrackIds
     }
 
     public suspend fun postPlaybackProgress(
@@ -411,14 +405,14 @@ class PlayerViewModel @Inject internal constructor(
         val mediaSubtitles = episode.mediaStreams?.mapIndexed { index, externalSubtitle ->
 
             MediaTrack.Builder(
-                index.toLong(), if (externalSubtitle.type == MediaStreamType.AUDIO) {
+                index.toLong(),
+                if (externalSubtitle.type == MediaStreamType.AUDIO) {
                     MediaTrack.TYPE_AUDIO
                 } else {
                     MediaTrack.TYPE_TEXT
                 }
             )
                 .setName(externalSubtitle.displayTitle + " " + externalSubtitle.type)
-                //.setContentId(streamUrl)
                 .setLanguage(externalSubtitle.language)
                 .build()
         }
@@ -429,7 +423,6 @@ class PlayerViewModel @Inject internal constructor(
                 MediaTrack.Builder(index.toLong(), MediaTrack.TYPE_AUDIO)
                     .setName(mediaStream.title)
                     .setLanguage(mediaStream.language)
-                    //.setContentId(mediaStream.deliveryUrl)
                     .build()
             }
         }
