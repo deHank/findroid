@@ -267,9 +267,7 @@ class PlayerViewModel @Inject internal constructor(
             }
 
             override fun onStatusUpdated() {
-
                 val mediaStatus = remoteMediaClient.mediaStatus
-
                 val activeSubtitleTrackIds = mediaStatus?.activeTrackIds
                 val subtitlesOffset =
                     mediaInfo?.mediaTracks!!.size - item.externalSubtitles.size
@@ -290,21 +288,22 @@ class PlayerViewModel @Inject internal constructor(
                                     subtitleIndex = newIndex
                                 }*/
 
-                                for(track in activeSubtitleTrackIds){
-                                    if(mediaInfo?.mediaTracks?.get(track.toInt())?.type?.equals(MediaTrack.TYPE_AUDIO) == true){
+                                for (track in activeSubtitleTrackIds) {
+                                    if (mediaInfo?.mediaTracks?.get(track.toInt())?.type?.equals(
+                                            MediaTrack.TYPE_AUDIO
+                                        ) == true
+                                    ) {
                                         newAudioIndex = track.toInt()
-                                    }
-                                    else{
+                                    } else {
                                         subtitleIndex = track.toInt()
                                     }
                                 }
 
                             }
-                            if(activeSubtitleTrackIds.size > 1){
-                                if(subtitleIndex != newIndex){
+                            if (activeSubtitleTrackIds.size > 1) {
+                                if (subtitleIndex != newIndex) {
                                     subtitleIndex = mediaStatus.activeTrackIds!!.get(1).toInt()
-                                }
-                                else{
+                                } else {
                                     newAudioIndex = mediaStatus.activeTrackIds!!.get(1).toInt()
                                 }
                             }
@@ -321,10 +320,20 @@ class PlayerViewModel @Inject internal constructor(
                             }*/
                             /*val newUrl =
                                 jellyfinApi.api.createUrl("/videos/" + item.itemId + "/master.m3u8?DeviceId=" + jellyfinApi.api.deviceInfo.id + "&MediaSourceId=" + item.mediaSourceId + "&VideoCodec=h264,h264&AudioCodec=mp3&AudioStreamIndex=" + newAudioIndex + "&SubtitleStreamIndex=" + subtitleIndex + "&VideoBitrate=10000000&AudioBitrate=320000&AudioSampleRate=44100&MaxFramerate=23.976025&PlaySessionId=" + (Math.random() * 10000).toInt() + "&api_key=" + jellyfinApi.api.accessToken + "&SubtitleMethod=Encode&RequireAvc=false&SegmentContainer=ts&BreakOnNonKeyFrames=False&h264-level=5&h264-videobitdepth=8&h264-profile=high&h264-audiochannels=2&aac-profile=lc&TranscodeReasons=SubtitleCodecNotSupported")
-*/                          var newUrl = mediaInfo?.contentUrl
-                            newUrl = newUrl!!.replace(Regex("AudioStreamIndex=-?\\d+"), "AudioStreamIndex="+newAudioIndex)
-                            newUrl = newUrl.replace(Regex("SubtitleStreamIndex=-?\\d+"), "SubtitleStreamIndex="+subtitleIndex)
-                            newUrl = newUrl.replace(Regex("PlaySessionId=[\\w&]+"), "PlaySessionId=" + (Math.random() * 10000).toInt() + "&api_key")
+*/
+                            var newUrl = mediaInfo?.contentUrl
+                            newUrl = newUrl!!.replace(
+                                Regex("AudioStreamIndex=-?\\d+"),
+                                "AudioStreamIndex=" + newAudioIndex
+                            )
+                            newUrl = newUrl.replace(
+                                Regex("SubtitleStreamIndex=-?\\d+"),
+                                "SubtitleStreamIndex=" + subtitleIndex
+                            )
+                            newUrl = newUrl.replace(
+                                Regex("PlaySessionId=[\\w&]+"),
+                                "PlaySessionId=" + (Math.random() * 10000).toInt() + "&api_key"
+                            )
                             val newMediaInfo = buildMediaInfo(newUrl, item, episode)
 
                             remoteMediaClient.load(
