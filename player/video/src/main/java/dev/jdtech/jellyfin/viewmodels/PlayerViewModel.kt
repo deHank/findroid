@@ -440,7 +440,7 @@ class PlayerViewModel @Inject internal constructor(
             .setContentType(MimeTypes.VIDEO_MP4)
             .setContentUrl(streamUrl)
             .setMediaTracks(mediaSubtitles)
-            //.setMetadata(mediaMetadata)
+            .setMetadata(mediaMetadata)
             .build()
     }
 
