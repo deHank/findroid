@@ -282,13 +282,23 @@ class PlayerViewModel @Inject internal constructor(
                     if (!previousSubtitleTrackIds.contentEquals(mediaStatus.activeTrackIds) && previousSubtitleTrackIds != null) {
                         if (activeSubtitleTrackIds != null) {
                             if (activeSubtitleTrackIds.isNotEmpty()) {
-                                newIndex =
+                                /*newIndex =
                                     (mediaStatus.activeTrackIds!!.get(0)).toInt()
                                 if (newIndex < subtitlesOffset) {
                                     newAudioIndex = newIndex
                                 } else {
                                     subtitleIndex = newIndex
+                                }*/
+
+                                for(track in activeSubtitleTrackIds){
+                                    if(mediaInfo?.mediaTracks?.get(track.toInt())?.type?.equals(MediaTrack.TYPE_AUDIO) == true){
+                                        newAudioIndex = track.toInt()
+                                    }
+                                    else{
+                                        subtitleIndex = track.toInt()
+                                    }
                                 }
+
                             }
                             if(activeSubtitleTrackIds.size > 1){
                                 if(subtitleIndex != newIndex){
